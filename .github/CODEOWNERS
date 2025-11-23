@@ -1,0 +1,7 @@
+# CODEOWNERS: lock down governance and kernel files
+# Use a GitHub username or team here. Adjust if different from `@Kinrokin`.
+
+/GOVERNANCE.md @Kinrokin
+/CONTRIBUTORS @Kinrokin
+/src/governance/ @Kinrokin
+/src/kernels/ @Kinrokin
