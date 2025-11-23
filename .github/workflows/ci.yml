@@ -1,40 +1,35 @@
 name: Sovereign Integrity Check (CI)
-
-on:
-  push:
-    branches: [ "main", "master" ]
-  pull_request:
-    branches: [ "main", "master" ]
-
+on: [push, pull_request]
 jobs:
-  audit:
-    name: "Full System Audit & Governance Check"
+  build-and-test:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout Code
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v4
         with:
           python-version: "3.11"
+          cache: 'pip'
 
-      - name: Run YAML Lint Check
-        uses: pre-commit/action@v3.0.1
-        with:
-          # Run only the YAML check hook from pre-commit config
-          hook: check-yaml
-
-      - name: Install Dependencies
+      - name: Install dependencies (including pre-commit for CI)
         run: |
           python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          if [ -f requirements_ml_eng.txt ]; then pip install -r requirements_ml_eng.txt; fi
-          pip install requests numpy cryptography
+          # Install all dependencies, including dev requirements
+          pip install -r requirements.txt || true
+          pip install -r requirements_dev.txt || pip install pre-commit pytest pytest-cov
+          # Ensure pre-commit is available
+          pip install pre-commit
 
-      - name: Run The Sovereign Audit
+      - name: Run Full Pre-Commit Suite (Lint, Format, Bandit, Mypy)
         run: |
-          # This runs the Master Audit script.
-          # If it detects stubs, broken axioms, or missing files, it will exit with error.
-          python tests/full_system_audit.py
+          # This runs ALL hooks defined in .pre-commit-config.yaml against ALL files.
+          pre-commit run --all-files
+
+      - name: Run Pytest and Code Coverage
+        run: |
+          pip install pytest pytest-cov
+          pytest -q --maxfail=1 --disable-warnings --cov=src --cov-report=xml
+
+      # Optional: Add coverage upload step (e.g., codecov) if needed
