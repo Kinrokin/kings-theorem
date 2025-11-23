@@ -1,0 +1,14 @@
+﻿[tool.poetry]
+name = "kings-theorem-kt-v47"
+version = "47.0.0"
+description = "King's Theorem (KT-v47) Parallel Cognitive Kernel & Apex Synthesis"
+authors = ["The Hive Mind"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+numpy = "^1.26.4"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

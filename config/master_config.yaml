@@ -1,0 +1,22 @@
+﻿system:
+  version: "53.6.0"
+  mode: "SOVEREIGN_REFLECTOR"
+
+security:
+  api_key_env: "KT_API_KEY"
+  ledger_ttl_sec: 900
+  tsa_url: "https://freetsa.org/tsr"
+
+metrics:
+  spectral_correlation_limit: 0.92
+  h_max_default: 0.15
+  flood_entropy_min: 1.5
+  flood_spike_sigma: 4.0
+  replay_residual_threshold: 3.0
+  replay_window_short: 50
+  replay_window_long: 200
+
+governance:
+  tri_governor:
+    priority:
+    singularity_trigger: "Integrity=VETO && Temporal=FREEZE"

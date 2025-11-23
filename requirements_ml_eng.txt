@@ -1,0 +1,11 @@
+﻿# AID: requirements.txt
+# Environment definition for the KT-v47 Apex Synthesis Protocol.
+torch>=2.3.0
+transformers>=4.40.0
+accelerate>=0.30.0
+peft>=0.11.0
+numpy>=1.26.0
+pyyaml>=6.0.0
+unsloth[cu122] # Optimized kernels for memory efficiency
+#flash-attn>=2.6.0 # FlashAttention-3 proxy
+bitsandbytes>=0.43.0 # Required for Paged AdamW/Lion

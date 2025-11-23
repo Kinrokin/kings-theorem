@@ -1,0 +1,4 @@
+﻿body { font-family: system-ui; background: #0c0f12; color: #eee; }
+.container { max-width: 600px; margin: 40px auto; background: #161b22; padding: 20px; border-radius: 8px; }
+input, textarea { width: 100%; padding: 8px; margin: 8px 0; background: #0d1117; border: 1px solid #30363d; color: #fff; }
+button { padding: 10px; background: #238636; color: #fff; border: none; cursor: pointer; }

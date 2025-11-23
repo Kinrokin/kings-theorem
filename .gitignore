@@ -1,0 +1,24 @@
+# Strict .gitignore for KingsTheorem repository
+
+# Critical secrets and keys
+keys/
+
+# Runtime logs and audit trails
+logs/
+
+# Large, generated or binary model artifacts
+docker/ollama_models/
+
+# Python cache and bytecode
+__pycache__/
+*.pyc
+
+# Environment files
+.env
+
+# Test artifacts/datasets not intended for repo
+tests/store_div/
+
+# Editor/OS files
+.DS_Store
+Thumbs.db

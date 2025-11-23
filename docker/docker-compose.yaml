@@ -1,0 +1,25 @@
+﻿version: '3.8'
+services:
+  kt-sovereign:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../keys:/app/keys
+      - ../src/ledger/store:/app/src/ledger/store
+    environment:
+      - PYTHONUNBUFFERED=1
+      - KT_API_KEY=kthitl_dev
+    
+  # Generative Intelligence Layer: Ollama + Small Qwen Model
+  ollama-qwen:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434" # Ollama's default API port
+    volumes:
+      - ./ollama_models:/root/.ollama # Persist model downloads
+    command: serve
+    # NOTE: Qwen model must be pre-pulled or pulled upon start. 
+    # Use 'ollama pull qwen:7b' in the container shell after it starts.

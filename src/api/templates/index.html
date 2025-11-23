@@ -1,0 +1,23 @@
+﻿<!doctype html>
+<html lang='en'>
+<head><meta charset='utf-8'><title>KT-v53.6 Sovereign</title><link rel='stylesheet' href='/static/style.css'></head>
+<body><div class='container'><h1>KT Sovereign Reflector</h1><form id='approve-form'>
+<label>Token</label><input id='token' required><label>Signature</label><input id='signature' required>
+<label>Rationale</label><textarea id='rationale' required minlength='10'></textarea>
+<label>Key</label><input id='apikey' required><button type='submit'>Approve</button>
+</form><pre id='result'></pre></div>
+<script>
+document.getElementById('approve-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const res = await fetch('/approve', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json', 'x-api-key': document.getElementById('apikey').value},
+    body: JSON.stringify({
+      token: document.getElementById('token').value,
+      signature: document.getElementById('signature').value,
+      rationale: document.getElementById('rationale').value
+    })
+  });
+  document.getElementById('result').textContent = JSON.stringify(await res.json(), null, 2);
+});
+</script></body></html>
