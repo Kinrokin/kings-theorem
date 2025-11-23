@@ -42,6 +42,7 @@ cd /d "%~dp0"
 
 start http://localhost:8501
 
-streamlit run ui_app.py
+REM Launch bootloader which verifies code integrity before starting the system
+python src/bootloader.py
 
 pause
