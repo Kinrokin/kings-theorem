@@ -1,0 +1,20 @@
+# requirements.lock - generated (pins from requirements.txt)
+# NOTE: This lockfile is a conservative pin of minimum versions found in requirements.txt.
+# For cryptographic assurance, regenerate using `pip download` and compute hashes, or
+# use `pip-compile` / `pip-tools` in a trusted environment.
+
+numpy==1.26.4
+pydantic==2.7.1
+scipy==1.13.1
+metric-temporal-logic==0.4.0
+streamlit==1.30.0
+pyyaml==6.0.0
+
+# Apex/ML stack (pinned to the minimum allowed by requirements.txt)
+torch==2.3.0
+transformers==4.40.0
+accelerate==0.30.0
+peft==0.11.0
+bitsandbytes==0.43.0
+
+# End of lockfile
