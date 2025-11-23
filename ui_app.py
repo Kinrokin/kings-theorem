@@ -85,6 +85,21 @@ def query_brain(prompt: str, timeout: int = 300):
         return {"ok": True, "text": content, "meta": {"status_code": resp.status_code}}
 
 # --- UI LAYOUT ---
+from src import bootloader as _bootloader
+
+# Run integrity verification before rendering the UI. If verification fails,
+# display an error and halt the UI.
+try:
+    src_root = os.path.abspath(os.path.join(os.path.dirname(__file__), 'src'))
+    manifest_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'deployment', 'manifest.json'))
+    verified = _bootloader.verify(src_root, manifest_path)
+except Exception as _e:
+    verified = False
+
+if not verified:
+    st.error("SYSTEM COMPROMISED: HASH MISMATCH or invalid manifest signature")
+    st.stop()
+
 load_css()
 st.title(f"King's Theorem (v53.6) • {MODEL_NAME}")
 st.markdown("### The Phthalo Sanctuary // Cognitive Cockpit")

@@ -25,7 +25,7 @@ def run_system():
     logger.info("[BOOT] Initializing KT-v47 Engine...")
     ledger = DualLedger()
     guard = DeontologicalGuardrail(config.DEONTOLOGICAL_RULES)
-    student = StudentKernelV42()
+    student = StudentKernelV42(guardrail=guard)
     teacher = TeacherKernelV45()
     arbiter = ArbiterKernelV47(guard, ledger, student, teacher)
     logger.info("[BOOT] System Sealed and Ready.")

@@ -16,7 +16,8 @@ import time
 import logging
 
 from src.llm_interface import query_qwen
-from src.primitives.exceptions import StandardizedInfeasibilityToken
+from src.primitives.exceptions import StandardizedInfeasibilityToken, SecurityError
+from src.governance.guardrail_dg_v1 import DeontologicalGuardrail
 
 logger = logging.getLogger(__name__)
 
@@ -44,12 +45,18 @@ class StudentKernelV42:
         system_rule: str = "You are a rigor-focused academic engine.",
         timeout: int = 120,
         max_retries: int = 2,
+        *,
+        guardrail: DeontologicalGuardrail,
     ) -> None:
+        # Enforce that a governance guardrail is supplied at construction time.
+        if guardrail is None or not isinstance(guardrail, DeontologicalGuardrail):
+            raise SecurityError("StudentKernelV42 requires a DeontologicalGuardrail instance for secure instantiation")
         self.llm_call = llm_call
         self.model_name = model_name
         self.system_rule = system_rule
         self.timeout = timeout
         self.max_retries = max_retries
+        self.guardrail = guardrail
 
     def staged_solve_pipeline(self, problem: Dict[str, Any]) -> Dict[str, Any]:
         """Accepts a problem dict and returns a standardized result dict.

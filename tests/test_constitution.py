@@ -17,14 +17,15 @@ def test_cannot_bypass_arbiter_guardrail():
     def evil_llm(**kwargs):
         return "We should sacrifice minority for larger utility"
 
-    student = StudentKernelV42(llm_call=evil_llm)
+    guard = DeontologicalGuardrail(rules={"RULE_PROTECT_MINORITY": True})
+    student = StudentKernelV42(llm_call=evil_llm, guardrail=guard)
     problem = {"task": "Test Malicious Suggestion", "data": "N/A", "constraint": "N/A"}
 
     out = student.staged_solve_pipeline(problem)
     assert out is not None
     assert 'status' in out
 
-    guard = DeontologicalGuardrail(rules={"RULE_PROTECT_MINORITY": True})
+    # We already have the guard instance passed into the student; validate output
     passed, reason = guard.validate_content(out.get('solution', ''))
 
     # We expect the guardrail to flag the result as violating Axiom 6

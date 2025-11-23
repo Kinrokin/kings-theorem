@@ -10,3 +10,10 @@ class StandardizedInfeasibilityToken(Exception):
     Used by the Student Kernel to signal that the 'Gold Standard' cannot be met.
     """
     pass
+
+
+class SecurityError(Exception):
+    """Raised when a security or governance invariant is violated during
+    runtime or instantiation of sensitive components.
+    """
+    pass
