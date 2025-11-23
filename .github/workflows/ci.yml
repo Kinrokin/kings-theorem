@@ -1,0 +1,70 @@
+name: Sovereign Integrity Check (CI)
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  audit:
+    name: "Full System Audit & Governance Check"
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        # Install ML/Testing dependencies if needed
+        if [ -f requirements_ml_eng.txt ]; then pip install -r requirements_ml_eng.txt; fi
+        # Install other critical libs if missing from txt
+        pip install requests numpy cryptography
+
+    - name: Run The Sovereign Audit
+      run: |
+        # This runs the Master Audit script.
+        # If it detects stubs, broken axioms, or missing files, it will exit with error.
+        python tests/full_system_audit.py
+name: Sovereign Integrity Check (CI)
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  audit:
+    name: "Full System Audit & Governance Check"
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        # Install ML/Testing dependencies if needed
+        if [ -f requirements_ml_eng.txt ]; then pip install -r requirements_ml_eng.txt; fi
+
+    - name: Run The Sovereign Audit
+      run: |
+        # This runs the Master Audit script.
+        # If it detects stubs, broken axioms, or missing files, it will exit with error.
+        python tests/full_system_audit.py
