@@ -32,4 +32,9 @@ jobs:
           pip install pytest pytest-cov
           pytest -q --maxfail=1 --disable-warnings --cov=src --cov-report=xml
 
-      # Optional: Add coverage upload step (e.g., codecov) if needed
+      - name: Upload coverage reports to Codecov (Rigor & Auditability Gate)
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage.xml
+          fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }}
