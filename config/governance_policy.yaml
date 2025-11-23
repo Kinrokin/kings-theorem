@@ -1,0 +1,37 @@
+# Governance Policy: King's Theorem v53.x - Adversarial Hardened Config
+
+# --- Rigor & Thresholds (TriGovernor) ---
+rigor:
+  # Minimum confidence score (0.0 to 1.0) required for a proposal to proceed to EXECUTE
+  warrant_threshold: 0.8  # Raised from hardcoded 0.6 for higher safety
+  
+  # Time-to-Live (TTL) for pre-committed tokens in the IntegrityLedger (seconds)
+  transaction_ttl_seconds: 7200 # 2 hours
+  
+  # Correlation threshold for spectral monitors (Anomaly Detection)
+  spectral_correlation_limit: 0.95 # Higher value means less tolerance for agreement/groupthink
+
+# --- Governance Keys & Signatures (Sovereignty & HITL) ---
+keys:
+  # Internal key used for automated low-risk actions and multi-sig component
+  internal_automation_id: "KT_INTERNAL_SVC_01"
+  # External key required for high-risk actions (FREEZE, HALT, or large financial ops)
+  operator_key_id: "KT_OPERATOR_HIGH_RISK_01"
+  
+  # Policy for required signatures to finalize an IntegrityLedger entry:
+  # 'EXECUTE' decisions only require 1 (internal_automation_id)
+  # 'FREEZE'/'HALT' decisions require 2-of-2 multisig (Both keys)
+  multisig_policy:
+    default_required_signatures: 1
+    critical_required_signatures: 2 # Enforces S1
+
+# --- Deontological Guardrails (Ethics) ---
+guardrails:
+  # Hard-coded tags that trigger an automatic, immediate veto from DeontologicalGuardrail
+  veto_tags:
+    - "sacrifice_minorities"
+    - "monstrous_optima"
+    - "ethical_violation_class_a"
+  
+  # Audit log placeholder for auto-approved rationale (now replaced by G3 Dynamic Rationale)
+  low_risk_rationale_id: "AUDIT_RATIONALE_LOW_RISK_ID_001"
