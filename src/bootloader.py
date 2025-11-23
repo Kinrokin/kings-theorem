@@ -107,8 +107,11 @@ def verify(src_root: str, manifest_path: str) -> bool:
         sig_ok = False
 
     if not sig_ok:
-        logger.error("[BOOTLOADER] Manifest signature verification failed. Aborting.")
-        return False
+        # Critical security violation: manifest signature invalid
+        # Print a clearly visible message and halt immediately with exit code 1.
+        print('[CRITICAL] SECURITY VIOLATION: MANIFEST TAMPERED')
+        logger.critical('[BOOTLOADER] Manifest signature verification failed. Aborting.')
+        sys.exit(1)
 
     expected = manifest.get('files', {})
 

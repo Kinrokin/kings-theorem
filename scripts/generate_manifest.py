@@ -47,11 +47,17 @@ def load_private_key(path: str):
 def sign_manifest(manifest_obj: dict, privkey) -> str:
     # Serialize canonical JSON
     payload = json.dumps(manifest_obj, sort_keys=True, separators=(',', ':')).encode('utf-8')
-    signature = privkey.sign(
-        payload,
-        padding.PKCS1v15(),
-        hashes.SHA256()
-    )
+    # Support multiple key types (RSA and Ed25519).
+    try:
+        # Attempt RSA-style signature (cryptography.hazmat.primitives.asymmetric.rsa.RSAPrivateKey)
+        signature = privkey.sign(
+            payload,
+            padding.PKCS1v15(),
+            hashes.SHA256()
+        )
+    except TypeError:
+        # Likely an Ed25519/Ed448 key which signs with a single-argument API
+        signature = privkey.sign(payload)
     return base64.b64encode(signature).decode('utf-8')
 
 
