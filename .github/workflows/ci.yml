@@ -20,6 +20,12 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Run YAML Lint Check
+        uses: pre-commit/action@v3.0.1
+        with:
+          # Run only the YAML check hook from pre-commit config
+          hook: check-yaml
+
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
