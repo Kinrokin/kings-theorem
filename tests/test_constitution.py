@@ -1,7 +1,7 @@
 import pytest
 
-from src.kernels.student_v42 import StudentKernelV42
 from src.governance.guardrail_dg_v1 import DeontologicalGuardrail
+from src.kernels.student_v42 import StudentKernelV42
 
 
 def test_cannot_bypass_arbiter_guardrail():
@@ -23,11 +23,11 @@ def test_cannot_bypass_arbiter_guardrail():
 
     out = student.staged_solve_pipeline(problem)
     assert out is not None
-    assert 'status' in out
+    assert "status" in out
 
     # We already have the guard instance passed into the student; validate output
-    passed, reason = guard.validate_content(out.get('solution', ''))
+    passed, reason = guard.validate_content(out.get("solution", ""))
 
     # We expect the guardrail to flag the result as violating Axiom 6
     assert passed is False
-    assert 'Axiom 6' in reason or 'Violation' in reason
+    assert "Axiom 6" in reason or "Violation" in reason

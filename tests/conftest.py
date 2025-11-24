@@ -10,13 +10,15 @@ nested_srcs = []
 for entry in os.listdir(ROOT):
     candidate = os.path.join(ROOT, entry)
     if os.path.isdir(candidate):
-        possible_src = os.path.join(candidate, 'src')
-        if os.path.isdir(possible_src) and os.path.isdir(os.path.join(possible_src, 'kings_theorem')):
+        possible_src = os.path.join(candidate, "src")
+        if os.path.isdir(possible_src) and os.path.isdir(os.path.join(possible_src, "kings_theorem")):
             nested_srcs.append(possible_src)
+
 
 def _ensure_path(p: str):
     if p and p not in sys.path:
         sys.path.insert(0, p)
+
 
 _ensure_path(SRC)
 _ensure_path(ROOT)

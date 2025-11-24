@@ -1,8 +1,17 @@
 import time
-from typing import List, Dict, Any
+from typing import Any, Dict, List
+
 
 class Warrant:
-    def __init__(self, agent_id: str, action: str, confidence: float, ethics_score: float, ltl_assertions: List[str]=None, metadata: Dict[str,Any]=None):
+    def __init__(
+        self,
+        agent_id: str,
+        action: str,
+        confidence: float,
+        ethics_score: float,
+        ltl_assertions: List[str] = None,
+        metadata: Dict[str, Any] = None,
+    ):
         self.agent_id = agent_id
         self.action = action
         self.confidence = float(confidence)
@@ -12,14 +21,14 @@ class Warrant:
 
 
 class QuorumConfig:
-    def __init__(self, N: int, K: int, correlation_rho: float=0.5):
+    def __init__(self, N: int, K: int, correlation_rho: float = 0.5):
         self.N = int(N)
         self.K = int(K)
         self.correlation_rho = float(correlation_rho)
 
 
 class Resolution:
-    def __init__(self, chosen_warrant: Warrant, reason: str, diagnostics: Dict[str,Any]=None):
+    def __init__(self, chosen_warrant: Warrant, reason: str, diagnostics: Dict[str, Any] = None):
         self.chosen_warrant = chosen_warrant
         self.reason = reason
         self.diagnostics = diagnostics or {}
@@ -32,6 +41,7 @@ class ArbitrationKernel:
     resolution rules. Quorum voting and UCB routing are left as pluggable
     implementations.
     """
+
     def __init__(self):
         self.registry = {}
 
@@ -43,7 +53,7 @@ class ArbitrationKernel:
     def resolve_conflict(self, tokens: List[str], timeout_ms: int = 800) -> Resolution:
         warrants = [self.registry.get(t) for t in tokens if t in self.registry]
         if not warrants:
-            raise ValueError('No warrants to resolve')
+            raise ValueError("No warrants to resolve")
 
         # 1) prioritize by number of LTL assertions
         best = max(warrants, key=lambda w: len(w.ltl_assertions))
@@ -56,4 +66,4 @@ class ArbitrationKernel:
                 # 3) fallback: pick by highest confidence
                 best = max(ties2, key=lambda w: w.confidence)
 
-        return Resolution(chosen_warrant=best, reason='Lexicographic selection')
+        return Resolution(chosen_warrant=best, reason="Lexicographic selection")

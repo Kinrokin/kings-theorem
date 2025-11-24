@@ -3,8 +3,11 @@ AID: /src/primitives/dual_ledger.py
 Proof ID: PRF-AUDIT-001
 Axiom: Axiom 3: Auditability by Design
 """
-import hashlib, time, json
+
+import hashlib
+import json
 import logging
+import time
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -18,8 +21,8 @@ class DualLedger:
         timestamp = time.time()
         entry = {"timestamp": timestamp, "actor": actor, "action": action, "outcome": str(outcome)}
         entry_str = json.dumps(entry, sort_keys=True)
-        entry_hash = hashlib.sha256(entry_str.encode('utf-8')).hexdigest()
-        prev_hash = self.chain[-1]['hash'] if self.chain else "000000"
+        entry_hash = hashlib.sha256(entry_str.encode("utf-8")).hexdigest()
+        prev_hash = self.chain[-1]["hash"] if self.chain else "000000"
 
         block = {"entry": entry, "hash": entry_hash, "prev_hash": prev_hash}
         self.chain.append(block)

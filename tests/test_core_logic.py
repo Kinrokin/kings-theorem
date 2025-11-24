@@ -2,8 +2,11 @@
 AID: /tests/test_core_logic.py
 Proof ID: PRF-TEST-001
 """
+
 import unittest
+
 from src.governance.guardrail_dg_v1 import DeontologicalGuardrail
+
 
 class TestGovernance(unittest.TestCase):
     def setUp(self):
@@ -27,5 +30,6 @@ class TestGovernance(unittest.TestCase):
         self.assertFalse(passed)
         self.assertIn("pump", reason)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

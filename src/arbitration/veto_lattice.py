@@ -1,16 +1,17 @@
-from typing import List, Dict, Any
-from src.arbitration.pce_bundle import PCEBundle
 from dataclasses import dataclass
+from typing import Any, Dict, List
 
-CONSTITUTIONAL_INVARIANTS = [
-    {"name": "AGGREGATE_HARM_CHECK", "type": "safety"}
-]
+from src.arbitration.pce_bundle import PCEBundle
+
+CONSTITUTIONAL_INVARIANTS = [{"name": "AGGREGATE_HARM_CHECK", "type": "safety"}]
+
 
 @dataclass
 class VetoRecord:
     invariant: str
     result: bool
     reason: str
+
 
 class VetoLattice:
     def __init__(self):

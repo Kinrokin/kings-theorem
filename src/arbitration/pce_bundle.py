@@ -1,9 +1,13 @@
+import hashlib
+import json
+import uuid
 from dataclasses import dataclass, field
-from typing import List, Dict, Any
-import hashlib, json, uuid
+from typing import Any, Dict, List
+
 
 def hash_blob(obj):
     return hashlib.sha256(json.dumps(obj, sort_keys=True).encode()).hexdigest()
+
 
 @dataclass
 class StepResult:
@@ -11,6 +15,7 @@ class StepResult:
     verdict: str  # "CONTINUE","EXECUTE","REJECT"
     output_artifact: Dict[str, Any]
     claims: List[Dict[str, Any]] = field(default_factory=list)
+
 
 @dataclass
 class PCEBundle:
@@ -26,6 +31,6 @@ class PCEBundle:
     def get_current_state_hash(self) -> str:
         payload = {
             "bundle_id": self.bundle_id,
-            "steps": [ {"id": s.step_id, "verdict": s.verdict, "artifact": s.output_artifact} for s in self.steps ]
+            "steps": [{"id": s.step_id, "verdict": s.verdict, "artifact": s.output_artifact} for s in self.steps],
         }
         return hash_blob(payload)

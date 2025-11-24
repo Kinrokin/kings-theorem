@@ -1,5 +1,6 @@
-from typing import List, Dict, Set, Optional
 import os
+from typing import Dict, List, Optional, Set
+
 from .crypto import verify_signature
 
 # Define the critical action statuses that REQUIRE 2-of-2 signature
@@ -70,14 +71,16 @@ def verify_multisig(
                 pub_path = candidate
             else:
                 # try common extensions
-                for ext in ('.pub', '.pem'):
+                for ext in (".pub", ".pem"):
                     candidate_ext = candidate + ext
                     if os.path.exists(candidate_ext):
                         pub_path = candidate_ext
                         break
 
         try:
-            is_valid = verify_signature(pub_path, data_to_verify.encode() if isinstance(data_to_verify, str) else data_to_verify, signature)
+            is_valid = verify_signature(
+                pub_path, data_to_verify.encode() if isinstance(data_to_verify, str) else data_to_verify, signature
+            )
         except Exception as e:
             raise InvalidSignatureError(f"Verification failed for key {key_id}: {e}")
 

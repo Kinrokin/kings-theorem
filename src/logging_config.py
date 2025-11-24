@@ -1,7 +1,7 @@
 import logging
+import os
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
-import os
 
 
 def setup_logging(log_file: str = None, level: int = logging.INFO):

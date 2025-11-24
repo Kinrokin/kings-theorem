@@ -2,7 +2,10 @@
 AID: /src/kernels/teacher_v45.py
 Proof ID: PRF-MOPFO-001
 """
-from typing import Dict, Any
+
+from typing import Any, Dict
+
+
 class TeacherKernelV45:
     def mopfo_pipeline(self, problem: Dict[str, Any]) -> Dict[str, Any]:
         constraints = problem.get("module3_planning", {}).get("constraints", {})

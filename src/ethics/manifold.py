@@ -1,6 +1,7 @@
-from dataclasses import dataclass
-from typing import Dict, Tuple, Any
 import math
+from dataclasses import dataclass
+from typing import Any, Dict, Tuple
+
 
 @dataclass
 class EthicalManifold:
@@ -13,6 +14,7 @@ class EthicalManifold:
                 return False
         return True
 
+
 class ManifoldProjector:
     def __init__(self, manifold: EthicalManifold):
         self.manifold = manifold
@@ -21,7 +23,7 @@ class ManifoldProjector:
         # Euclidean distance over defined dims
         s = 0.0
         for dim in self.manifold.dimensions:
-            s += (a.get(dim, 0.0) - b.get(dim, 0.0))**2
+            s += (a.get(dim, 0.0) - b.get(dim, 0.0)) ** 2
         return math.sqrt(s)
 
     def project(self, solution: Dict[str, float]) -> Tuple[Dict[str, float], bool]:

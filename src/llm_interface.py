@@ -3,10 +3,11 @@
 AID: /src/llm_interface.py
 Proof ID: PRF-LLM-INT-002
 """
-import os
-import requests
 import logging
+import os
 from typing import Any
+
+import requests
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +15,9 @@ logger = logging.getLogger(__name__)
 OLLAMA_API_URL = os.environ.get("OLLAMA_API", "http://localhost:11434/api/generate")
 
 
-def query_qwen(prompt: str, system_rule: str = "You are a helpful AI.", model: str = "qwen2.5:3b", timeout: int = 60, **kwargs) -> str:
+def query_qwen(
+    prompt: str, system_rule: str = "You are a helpful AI.", model: str = "qwen2.5:3b", timeout: int = 60, **kwargs
+) -> str:
     """Synapse function to query Qwen via Ollama HTTP API.
 
     Accepts `model` and `timeout` for compatibility with StudentKernel.

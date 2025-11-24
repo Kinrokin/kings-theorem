@@ -1,8 +1,13 @@
 from __future__ import annotations
+
+import hashlib
+import json
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Set, Tuple, List, Dict, Optional
-import hashlib, json
+from typing import List, Optional, Set, Tuple
+
+from .conflict_matrix import check_conflict
+
 
 class ConstraintType(Enum):
     SAFETY = "safety"
@@ -11,12 +16,13 @@ class ConstraintType(Enum):
     PRUDENTIAL = "prudential"
     ETHICAL = "ethical"
 
+
 @dataclass(frozen=True)
 class Constraint:
     id: str
     type: ConstraintType
-    expression: str            # A canonical string / small AST or SMT expression
-    strength: float            # 0.0..1.0 (higher = stronger)
+    expression: str  # A canonical string / small AST or SMT expression
+    strength: float  # 0.0..1.0 (higher = stronger)
     domain: str
     proof_obligation: bool = False
 
@@ -27,19 +33,22 @@ class Constraint:
             "expression": self.expression,
             "strength": self.strength,
             "domain": self.domain,
-            "proof_obligation": self.proof_obligation
+            "proof_obligation": self.proof_obligation,
         }
+
 
 def canonical_hash(obj: dict) -> str:
     return hashlib.sha256(json.dumps(obj, sort_keys=True).encode()).hexdigest()
+
 
 @dataclass
 class CompositionResult:
     safe: bool
     score: float
     conflicts: List[str] = field(default_factory=list)
-    witness: Optional[dict] = None    # optional counterexample
+    witness: Optional[dict] = None  # optional counterexample
     provenance: List[str] = field(default_factory=list)
+
 
 class ConstraintLattice:
     def __init__(self):
@@ -49,7 +58,7 @@ class ConstraintLattice:
             ConstraintType.OPERATIONAL: 0.3,
             ConstraintType.EPISTEMIC: 0.5,
             ConstraintType.PRUDENTIAL: 0.7,
-            ConstraintType.ETHICAL: 1.0
+            ConstraintType.ETHICAL: 1.0,
         }
 
     def meet(self, c1: Constraint, c2: Constraint) -> Constraint:
@@ -60,9 +69,17 @@ class ConstraintLattice:
         new_expr = f"({c1.expression}) AND ({c2.expression})"
         new_domain = c1.domain if c1.domain == c2.domain else "composite"
         cid = canonical_hash({"meet": [c1.as_json(), c2.as_json()]})
-        return Constraint(id=cid, type=new_type, expression=new_expr,
-                          strength=new_strength, domain=new_domain,
-                          proof_obligation=c1.proof_obligation or c2.proof_obligation)
+        # Invariant checks: type must be known and strength in [0,1]
+        assert new_type in self.hierarchy, "meet produced unknown type"
+        assert 0.0 <= new_strength <= 1.0, "meet produced invalid strength"
+        return Constraint(
+            id=cid,
+            type=new_type,
+            expression=new_expr,
+            strength=new_strength,
+            domain=new_domain,
+            proof_obligation=c1.proof_obligation or c2.proof_obligation,
+        )
 
     def join(self, c1: Constraint, c2: Constraint) -> Constraint:
         new_strength = min(c1.strength, c2.strength)
@@ -72,9 +89,17 @@ class ConstraintLattice:
         new_expr = f"({c1.expression}) OR ({c2.expression})"
         new_domain = c1.domain if c1.domain == c2.domain else "composite"
         cid = canonical_hash({"join": [c1.as_json(), c2.as_json()]})
-        return Constraint(id=cid, type=new_type, expression=new_expr,
-                          strength=new_strength, domain=new_domain,
-                          proof_obligation=c1.proof_obligation and c2.proof_obligation)
+        # Invariant checks
+        assert new_type in self.hierarchy, "join produced unknown type"
+        assert 0.0 <= new_strength <= 1.0, "join produced invalid strength"
+        return Constraint(
+            id=cid,
+            type=new_type,
+            expression=new_expr,
+            strength=new_strength,
+            domain=new_domain,
+            proof_obligation=c1.proof_obligation and c2.proof_obligation,
+        )
 
     def is_composable(self, cs: Set[Constraint]) -> Tuple[bool, CompositionResult]:
         """
@@ -92,6 +117,11 @@ class ConstraintLattice:
             for b in cs:
                 if a == b:
                     continue
+                # Early domain-level conflict check
+                conflict = check_conflict(a.domain, b.domain)
+                if conflict:
+                    conflicts.append(f"Domain conflict {a.domain} vs {b.domain}: {conflict}")
+                    continue
                 # Exact contradiction heuristic
                 if a.expression.strip().lower() == f"not ({b.expression.strip().lower()})":
                     conflicts.append(f"Direct contradiction between {a.id} and {b.id}")
@@ -104,6 +134,8 @@ class ConstraintLattice:
                     if a.strength >= 0.9 and "(optimize" in b.expression.lower():
                         conflicts.append(f"Ethical({a.id}) likely conflicts with Operational optimization {b.id}")
         if conflicts:
-            return False, CompositionResult(safe=False, score=score_accum, conflicts=conflicts, witness=None, provenance=provenance)
+            return False, CompositionResult(
+                safe=False, score=score_accum, conflicts=conflicts, witness=None, provenance=provenance
+            )
         # else return safe
         return True, CompositionResult(safe=True, score=score_accum, provenance=provenance)

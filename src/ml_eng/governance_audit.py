@@ -1,7 +1,11 @@
-﻿import yaml, os, sys
-import logging
+﻿import logging
+import os
+import sys
+
+import yaml
 
 logger = logging.getLogger(__name__)
+
 
 def run_governance_audit():
     logger.info("--- Governance Audit: Pre-Flight & Fusion Checks ---")
@@ -9,4 +13,6 @@ def run_governance_audit():
     logger.info("[PASS] Fusion Delta Norm: 1.02x (Safety Clamp < 2.0x).")
     logger.info("[TRIBUNAL] Quantization Decision: ACCEPT (Rule met).")
 
-if __name__ == "__main__": run_governance_audit()
+
+if __name__ == "__main__":
+    run_governance_audit()

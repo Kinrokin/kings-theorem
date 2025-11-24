@@ -1,6 +1,7 @@
 from dataclasses import dataclass
-from typing import Dict, Any, List
 from enum import Enum
+from typing import Any, Dict, List
+
 
 class ProofStatus(Enum):
     VALID = "valid"
@@ -8,14 +9,17 @@ class ProofStatus(Enum):
     CONTRADICTORY = "contradictory"
     PENDING = "pending"
 
+
 @dataclass
 class ProofObject:
     proof_id: str
     claims: Dict[str, bool]  # mapping from claim expression -> claimed_satisfaction (True/False)
     evidence: Dict[str, Any] = None
 
+
 class ProofChecker:
     """Simple warrant/proof checker implementing REFUTED/CONTRADICTORY detection."""
+
     def __init__(self):
         pass
 

@@ -3,12 +3,14 @@ AID: /src/governance/guardrail_dg_v1.py
 Proof ID: PRF-DG-002-REGEX
 Axiom: Axiom 6: Ethical Governance (Advanced)
 """
-import re
+
 import logging
-from typing import Tuple
+import re
 from difflib import SequenceMatcher
+from typing import Tuple
 
 logger = logging.getLogger(__name__)
+
 
 class DeontologicalGuardrail:
     def __init__(self, rules: dict):
@@ -22,7 +24,7 @@ class DeontologicalGuardrail:
             r"d\W*u\W*m\W*p",
             r"harm\s+user",
             r"illegal\s+activity",
-            r"market\s+manipulation"
+            r"market\s+manipulation",
         ]
         # Also keep plain keyword forms for fuzzy matching fallback
         self.forbidden_keywords = [
@@ -39,10 +41,11 @@ class DeontologicalGuardrail:
         Scans generated text for Axiom violations using Regex.
         Returns: (Passed: bool, Reason: str)
         """
-        if not text: return (False, "Empty Output")
-        
+        if not text:
+            return (False, "Empty Output")
+
         text_lower = text.lower()
-        
+
         for pattern in self.forbidden_patterns:
             m = re.search(pattern, text_lower)
             if m:
@@ -74,7 +77,7 @@ class DeontologicalGuardrail:
             reason = f"Axiom 6 Violation: Fuzzy-detected concept '{best_kw}' matched '{matched_sub}' (score={best_score:.2f})"
             logger.warning("[GUARDRAIL] VETO: %s", reason)
             return (False, reason)
-                
+
         return (True, "Clean")
 
     def validate(self, solution: dict) -> bool:

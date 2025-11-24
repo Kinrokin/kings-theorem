@@ -1,6 +1,7 @@
-import unittest
-import time
 import asyncio
+import time
+import unittest
+
 from src.kernels.student_v42 import StudentKernelV42
 
 
@@ -59,7 +60,7 @@ class TestStudentKernelV42(unittest.TestCase):
         sk = StudentKernelV42(llm_call=f, max_retries=2)
         res = sk.staged_solve_pipeline({"task": "t"})
         self.assertEqual(res["status"], "PASS (Student)")
-        self.assertIn("recovered", res["solution"]) 
+        self.assertIn("recovered", res["solution"])
 
     def test_async_variant(self):
         async def run_async_test():

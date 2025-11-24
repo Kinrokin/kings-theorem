@@ -1,6 +1,7 @@
-from enum import Enum
 from abc import ABC, abstractmethod
+from enum import Enum
 from typing import Any, Dict
+
 
 class KernelType(Enum):
     EPISTEMIC = "epistemic"
@@ -9,6 +10,7 @@ class KernelType(Enum):
     COMPOSITIONAL = "compositional"
     ADVERSARIAL = "adversarial"
     META = "meta"
+
 
 class TypedKernel(ABC):
     def __init__(self, kernel_type: KernelType, name: str):
@@ -29,7 +31,7 @@ class TypedKernel(ABC):
             KernelType.ETHICAL: 0.99,
             KernelType.COMPOSITIONAL: 0.90,
             KernelType.ADVERSARIAL: 0.80,
-            KernelType.META: 1.0
+            KernelType.META: 1.0,
         }
         return thresholds[self.type]
 
@@ -40,7 +42,7 @@ class TypedKernel(ABC):
             KernelType.COMPOSITIONAL: 3,
             KernelType.ADVERSARIAL: 4,
             KernelType.ETHICAL: 5,
-            KernelType.META: 10
+            KernelType.META: 10,
         }
         return power[self.type]
 
@@ -51,6 +53,6 @@ class TypedKernel(ABC):
             KernelType.ETHICAL: "value_alignment",
             KernelType.COMPOSITIONAL: "structural",
             KernelType.ADVERSARIAL: "refutation",
-            KernelType.META: "meta_consistency"
+            KernelType.META: "meta_consistency",
         }
         return burdens[self.type]

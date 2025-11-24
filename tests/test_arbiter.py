@@ -1,34 +1,43 @@
 import unittest
 from types import SimpleNamespace
+
 from src.kernels.arbiter_v47 import ArbiterKernelV47
 
 
 class DummyLedger:
     def __init__(self):
         self.logs = []
+
     def log(self, *args):
         self.logs.append(args)
+
 
 class DummyStudent:
     def __init__(self, out):
         self._out = out
+
     def staged_solve_pipeline(self, problem):
         return self._out
+
 
 class DummyTeacher:
     def __init__(self, out):
         self._out = out
+
     def mopfo_pipeline(self, problem):
         return self._out
+
 
 class DummyGuardrail:
     def __init__(self, allow=True):
         self.allow = allow
+
     def validate_content(self, text):
         # Return tuple (passed, reason)
         if self.allow:
             return (True, "Clean")
         return (False, "Detected forbidden content")
+
 
 class TestArbiter(unittest.TestCase):
     def test_student_solved_allowed(self):
@@ -60,5 +69,6 @@ class TestArbiter(unittest.TestCase):
         self.assertEqual(final["outcome"], "SOLVED")
         self.assertEqual(final["source"], "Teacher (Heuristic)")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

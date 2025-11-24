@@ -1,5 +1,7 @@
 import unittest
+
 from src.governance.guardrail_dg_v1 import DeontologicalGuardrail
+
 
 class TestGuardrail(unittest.TestCase):
     def setUp(self):
@@ -26,5 +28,6 @@ class TestGuardrail(unittest.TestCase):
         passed, _ = self.g.validate_content(text)
         self.assertTrue(passed)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

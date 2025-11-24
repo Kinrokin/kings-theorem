@@ -10,14 +10,14 @@ Improvements applied in this refactor:
 
 from __future__ import annotations
 
-from dataclasses import dataclass, asdict
-from typing import Dict, Any, Callable, Optional
-import time
 import logging
+import time
+from dataclasses import asdict, dataclass
+from typing import Any, Callable, Dict, Optional
 
-from src.llm_interface import query_qwen
-from src.primitives.exceptions import StandardizedInfeasibilityToken, SecurityError
 from src.governance.guardrail_dg_v1 import DeontologicalGuardrail
+from src.llm_interface import query_qwen
+from src.primitives.exceptions import SecurityError, StandardizedInfeasibilityToken
 
 logger = logging.getLogger(__name__)
 
@@ -113,12 +113,7 @@ class StudentKernelV42:
                 # Normalize response into text if necessary
                 if isinstance(response, dict):
                     # Try common keys
-                    text = (
-                        response.get("text")
-                        or response.get("response")
-                        or response.get("content")
-                        or str(response)
-                    )
+                    text = response.get("text") or response.get("response") or response.get("content") or str(response)
                     last_meta = {k: v for k, v in response.items() if k != "text"}
                 else:
                     text = str(response)
@@ -153,7 +148,6 @@ class StudentKernelV42:
                     )
                 # else, simple backoff
                 time.sleep(0.5 * attempt)
-            
 
     # --- Utilities ---
     @staticmethod
@@ -220,12 +214,7 @@ class StudentKernelV42:
                 )
 
                 if isinstance(response, dict):
-                    text = (
-                        response.get("text")
-                        or response.get("response")
-                        or response.get("content")
-                        or str(response)
-                    )
+                    text = response.get("text") or response.get("response") or response.get("content") or str(response)
                     last_meta = {k: v for k, v in response.items() if k != "text"}
                 else:
                     text = str(response)
