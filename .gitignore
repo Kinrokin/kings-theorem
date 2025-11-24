@@ -22,3 +22,5 @@ tests/store_div/
 # Editor/OS files
 .DS_Store
 Thumbs.db
+# Archive of local backups and dumps (do not track)
+/archive/dumps/
