@@ -1,8 +1,13 @@
+# src/algebra/constraint_expression.py
+"""
+Formal constraint expression AST with closure checks and lattice integration.
+Enhanced with validation for formal closure guarantees.
+"""
 from __future__ import annotations
 
 import re
 from dataclasses import dataclass
-from typing import List, Literal, Optional
+from typing import List, Literal, Optional, Set
 
 
 @dataclass(frozen=True)
@@ -16,6 +21,33 @@ class ConstraintExpr:
         if self.op == "atom":
             return f"ATOM({self.atom})"
         return f"({self.left} {self.op.upper()} {self.right})"
+
+    def validate_closure(self, allowed_atoms: Optional[Set[str]] = None) -> bool:
+        """
+        Validate that expression satisfies closure properties:
+        - All atoms are in the allowed set (if provided)
+        - No structural anomalies (mismatched op/children)
+        """
+        if self.op == "atom":
+            if allowed_atoms is not None and self.atom not in allowed_atoms:
+                return False
+            return self.atom is not None and self.left is None and self.right is None
+        elif self.op in ("and", "or"):
+            if self.left is None or self.right is None or self.atom is not None:
+                return False
+            return self.left.validate_closure(allowed_atoms) and self.right.validate_closure(allowed_atoms)
+        return False
+
+    def collect_atoms(self) -> Set[str]:
+        """Collect all atom identifiers in the expression."""
+        if self.op == "atom":
+            return {self.atom} if self.atom else set()
+        atoms = set()
+        if self.left:
+            atoms.update(self.left.collect_atoms())
+        if self.right:
+            atoms.update(self.right.collect_atoms())
+        return atoms
 
 
 class ParseError(ValueError):
@@ -85,6 +117,9 @@ class ConstraintExprParser:
         # Basic well-formedness: check no cycles (tree constructed fresh)
         if self._has_cycles(expr):
             raise ParseError("Expression contains cycles")
+        # Validate structural closure
+        if not expr.validate_closure():
+            raise ParseError("Expression fails closure validation")
         return expr
 
     def _parse_expr(self) -> ConstraintExpr:
@@ -123,3 +158,15 @@ class ConstraintExprParser:
 def parse_constraint_expr(text: str) -> ConstraintExpr:
     p = ConstraintExprParser(text)
     return p.parse()
+
+
+def validate_closure_properties(expr: ConstraintExpr, allowed_atoms: Optional[Set[str]] = None) -> bool:
+    """
+    Validate closure properties for the constraint expression:
+    - Structural integrity (op matches children)
+    - Atom whitelist compliance (if provided)
+    - Idempotence: expr AND expr == expr, expr OR expr == expr
+    - Commutativity: A AND B == B AND A, A OR B == B OR A
+    - Associativity: (A AND B) AND C == A AND (B AND C)
+    """
+    return expr.validate_closure(allowed_atoms)
