@@ -97,12 +97,17 @@ class ConstraintExprParser:
                 raise ParseError(f"Expected AND/OR, got {op}")
             right = self._parse_expr()
             self.consume(")")
-            return ConstraintExpr(op=op.lower(), left=left, right=right, atom=None)
+            op_lower = op.lower()
+            if op_lower not in ("and", "or"):
+                raise ParseError(f"Invalid operator: {op}")
+            return ConstraintExpr(op=op_lower, left=left, right=right, atom=None)  # type: ignore[arg-type]
         # atom
         token = self.consume()
         return ConstraintExpr(op="atom", left=None, right=None, atom=token)
 
-    def _has_cycles(self, node: ConstraintExpr, seen=None) -> bool:
+    def _has_cycles(self, node: Optional[ConstraintExpr], seen=None) -> bool:
+        if node is None:
+            return False
         if seen is None:
             seen = set()
         nid = id(node)

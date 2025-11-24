@@ -1,6 +1,6 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 
 class ProofStatus(Enum):
@@ -14,7 +14,7 @@ class ProofStatus(Enum):
 class ProofObject:
     proof_id: str
     claims: Dict[str, bool]  # mapping from claim expression -> claimed_satisfaction (True/False)
-    evidence: Dict[str, Any] = None
+    evidence: Optional[Dict[str, Any]] = None
 
 
 class ProofChecker:
@@ -23,7 +23,7 @@ class ProofChecker:
     def __init__(self):
         pass
 
-    def check_proof(self, proof: ProofObject, required_invariants: List[str] = None) -> ProofStatus:
+    def check_proof(self, proof: ProofObject, required_invariants: Optional[List[str]] = None) -> ProofStatus:
         """
         Check the proof against required invariants and internal consistency.
         - If any required invariant is explicitly claimed as not satisfied -> REFUTED
