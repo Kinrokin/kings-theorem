@@ -322,6 +322,33 @@ git push origin --force --all
 9. **Dependency Poisoning**: Malicious packages in supply chain
    - Mitigation: Lockfile enforcement + SCA scanning (see below)
 
+**Medium Priority Threats (Remediated in Phase 4):**
+4. **Counterfactual Rare Events**: Low-probability catastrophic composition failures
+   - Mitigation: Enhanced counterfactual engine with adversarial heuristics (`src/reasoning/counterfactual_engine.py`)
+   - Detection: NaN/Inf checks, extreme values, contradictions, risk-without-safety patterns
+   
+5. **Source Flooding**: Adversaries register many fake sources to manipulate consensus
+   - Mitigation: Federated source registry with flood detection (`src/sourcing/source_registry.py`)
+   - Enforcement: Registration rate limits, reputation scoring, cluster diversity caps
+   
+6. **Circular Proof Endorsement**: Proofs that reference themselves or form cycles
+   - Mitigation: Proof meta-checker with self-endorsement detection (`src/proofs/proof_lang.py`)
+   - Validation: DFS cycle detection, depth limits, invariant verification
+   
+7. **UX Manipulation**: Deceptive framing, omissions, and balance violations
+   - Mitigation: Semantic audit beyond token checks (`src/ux/semantic_audit.py`)
+   - Detection: Forbidden framing patterns, disclosure requirements, balance keywords
+
+**Lower Priority Threats:**
+8. **Timing Attacks**: Kernel orchestration delays manipulated
+   - Mitigation: Deterministic tie-breaking (`src/governance/timing_defense.py`)
+   
+9. **Homogenization**: Outputs collapse to single "safe" value
+   - Mitigation: Entropy monitoring (`src/kernels/entropy_monitor.py`)
+   
+10. **Dependency Poisoning**: Malicious packages in supply chain
+   - Mitigation: Lockfile enforcement + SCA scanning (see below)
+
 ### 6. Dependency Management
 
 **SCA (Software Composition Analysis):**
@@ -484,19 +511,133 @@ See `.github/workflows/ci.yml` for automated `safety` and `bandit` scans on ever
 - `cryptography`: Ed25519 signature verification in tests
 
 **Test Coverage:**
-- Manifest signature tests: `tests/test_manifest_signature.py`
-- Kernel verification tests: `tests/test_kernel_metadata_tamper.py`
-- Composition proof tests: `tests/test_composition_proof.py`
-- Adversarial battery: `tests/adversarial/` (37+ tests)
+- **Phase 3 (Critical)**: Manifest signing, kernel verification, composition proofs
+  - `tests/test_manifest_signature.py` (Ed25519/HMAC)
+  - `tests/test_kernel_metadata_tamper.py` (boot-time verification)
+  - `tests/test_composition_proof.py` (global invariants)
+  
+- **Phase 4 (Medium Priority)**: Rare events, source flooding, proof cycles, UX manipulation
+  - `tests/test_counterfactual_rare_events.py` (8 tests: NaN, contradictions, extreme values)
+  - `tests/test_source_flooding.py` (5 tests: flood detection, reputation, diversity)
+  - `tests/test_proof_meta_checks.py` (7 tests: cycles, self-endorsement, depth limits)
+  - `tests/test_ux_semantic_audit.py` (13 tests: framing, disclosures, balance)
+  
+- **Adversarial Battery**: `tests/adversarial/` (37+ tests)
 
 **CI Workflow:** `.github/workflows/ci.yml`
 - Pre-commit suite runs on all files
 - Security scans (bandit, safety) with JSON reports
-- Manifest & kernel security tests run separately
+- Phase 3 security tests (manifest, kernel, composition)
+- Phase 4 security tests (counterfactual, source, proof, UX)
 - Adversarial tests run in dedicated step
 - Coverage uploaded to Codecov with CI failure on drop
 
-### 11. Contact & Resources
+### 11. Federated Source Management (Phase 4)
+
+**Registration Procedures:**
+- Maximum 10 new sources per 60-second window (configurable via `max_new_sources_per_window`)
+- Sources must provide diversity tags (e.g., `{"medical", "journal", "peer_reviewed"}`)
+- Initial reputation defaults to 0.7 (configurable via `initial_reputation`)
+
+**Reputation Scoring:**
+- Exponential moving average with decay factor 0.3: `new_rep = 0.3 * feedback + 0.7 * old_rep`
+- Range: [0.0, 1.0] with minimum threshold enforcement (default 0.3)
+- Sources below `min_reputation` excluded from influence weighting
+
+**Diversity Constraints:**
+- Clusters detected via shared diversity tags
+- Maximum cluster influence capped at 40% (configurable via `max_cluster_influence`)
+- Excess weight redistributed proportionally to uncapped clusters
+- Prevents single domain from dominating consensus
+
+**Blacklisting:**
+- Manual or automated blacklisting with reason tracking
+- Blacklisted sources permanently excluded from weighting
+- Audit log captures blacklist events with timestamps
+
+**Usage Example:**
+```python
+from src.sourcing.source_registry import SourceRegistry
+
+registry = SourceRegistry(
+    min_reputation=0.3,
+    max_cluster_influence=0.4,
+    max_new_sources_per_window=10,
+    flood_window=60.0
+)
+
+# Register sources
+registry.register_source("med_journal_1", b"key1", diversity_tags={"medical", "journal"})
+registry.register_source("gov_health_1", b"key2", diversity_tags={"gov", "health"})
+
+# Update reputation based on feedback
+registry.update_reputation("med_journal_1", 0.9)  # Positive feedback
+
+# Compute influence weights (caps cluster at 40%, redistributes excess)
+weights = registry.compute_influence_weights()
+
+# Blacklist compromised source
+registry.blacklist_source("bad_actor", reason="manual_review")
+```
+
+### 12. UX Semantic Audit (Phase 4)
+
+**Forbidden Framing Patterns:**
+- Absolutist language: "always", "never", "impossible", "guaranteed"
+- Superlatives: "best", "worst", "only", "perfect"
+- False necessity: "must", "need", "required" (context-dependent)
+- Detects via regex patterns with word boundaries
+
+**Disclosure Requirements:**
+- High-stakes contexts (medical, financial, legal) require uncertainty acknowledgment
+- Keywords trigger disclosure check: "diagnose", "invest", "treatment", "portfolio"
+- Fails if uncertainty terms absent: "uncertain", "may", "possible", "risk"
+
+**Balance Coverage:**
+- Pro/con balance: "benefit" requires "risk", "drawback", or "cost"
+- Risk/benefit balance: "risk" requires "benefit" or "advantage"
+- Advantage/disadvantage balance: "pro" requires "con" or "against"
+- Detects imbalanced coverage when one keyword present without counterpart
+
+**Omission Detection:**
+- Medical context: Must mention "side effect" or "risk" or "complication"
+- Financial context: Must mention "risk" or "loss" or "volatility"
+- Fails if high-stakes context lacks critical omission keywords
+
+**Contradiction Detection:**
+- Identifies opposing claims in same response
+- Patterns: "safe...dangerous", "effective...ineffective", "increase...decrease"
+- Reports pairs of contradictory terms with issue type "contradiction"
+
+**Usage Example:**
+```python
+from src.ux.semantic_audit import SemanticAuditor
+
+auditor = SemanticAuditor()
+text = "This treatment is guaranteed to work. Invest now for perfect results."
+
+issues = auditor.audit(text)
+for issue in issues:
+    print(f"{issue.issue_type}: {issue.description} at position {issue.position}")
+    # Output: framing: Forbidden framing: guaranteed at position 12
+    #         framing: Forbidden framing: perfect at position 58
+    #         disclosure: High-stakes context (medical) missing uncertainty disclosure
+```
+
+**Audit Report Generation:**
+```python
+report = auditor.generate_report(text)
+print(report)
+# Output:
+# === UX Semantic Audit Report ===
+# Text length: 72 characters
+# Issues found: 3
+# - framing (position 12): Forbidden framing: guaranteed
+# - framing (position 58): Forbidden framing: perfect
+# - disclosure (position 0): High-stakes context (medical) missing uncertainty disclosure
+```
+
+### 13. Contact & Resources
 
 **Maintainer:** @Kinrokin
 **Security Contact:** File issue with `[SECURITY]` prefix

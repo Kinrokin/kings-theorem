@@ -53,6 +53,10 @@ jobs:
         run: |
           pytest -q tests/test_manifest_signature.py tests/test_kernel_metadata_tamper.py tests/test_composition_proof.py --maxfail=1 --disable-warnings -v
 
+      - name: Run Phase 4 Security Enhancements
+        run: |
+          pytest -q tests/test_source_flooding.py tests/test_proof_meta_checks.py tests/test_ux_semantic_audit.py tests/test_counterfactual_rare_events.py --maxfail=1 --disable-warnings -v
+
       - name: Run Adversarial Test Battery
         run: |
           pytest -q tests/adversarial/ --maxfail=1 --disable-warnings -v

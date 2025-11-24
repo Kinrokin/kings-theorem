@@ -181,28 +181,78 @@ class CounterfactualEngine:
 
     def _evaluate_violation(self, world: CounterfactualWorld) -> float:
         """
-        Heuristic scoring: combine constraint lattice composability (if available),
-        distance to ethical manifold (if outputs include manifold dims), and quick heuristics.
-        Returns score in [0,1].
+        Enhanced heuristic scoring with adversarial detection:
+        - Constraint lattice composability (formal check)
+        - NaN/Inf detection (numerical instability)
+        - Range violations (extreme values)
+        - Adversarial patterns (suspicious sequences)
+        Returns score in [0,1] where 1.0 = catastrophic violation.
         """
         score = 0.0
-        # 1) Lattice check (if available)
+        
+        # 1) Lattice check (if available) - formal composability
         if self.lattice and world.constraints:
             try:
                 is_composable, comp_result = self.lattice.is_composable(world.constraints)
-                score += 0.0 if is_composable else 0.6
-            except Exception:
-                score += 0.2
-        # 2) Heuristics: huge numeric values, negative values where not allowed
+                if not is_composable:
+                    score += 0.6  # Major violation
+                    logger.debug(f"Lattice violation: {comp_result}")
+            except Exception as e:
+                score += 0.2  # Unknown/error state
+                logger.debug(f"Lattice check error: {e}")
+        
+        # 2) Numerical instability detection
         for o in world.outputs:
             if isinstance(o, dict):
-                for v in o.values():
+                for k, v in o.items():
                     if isinstance(v, (int, float)):
+                        # NaN/Inf detection
                         if isinstance(v, float) and (np.isnan(v) or np.isinf(v)):
-                            score += 0.3
-                        if v < -1e6 or v > 1e6:
+                            score += 0.4  # Critical numerical failure
+                            logger.debug(f"NaN/Inf detected in output: {k}={v}")
+                        # Extreme value detection
+                        if abs(v) > 1e6:
                             score += 0.2
-        # 3) Normalize
+                            logger.debug(f"Extreme value in output: {k}={v}")
+                        # Suspicious negative values in typically-positive domains
+                        if v < -1e6:
+                            score += 0.15
+        
+        # 3) Adversarial sequence patterns
+        if len(world.composition_order) >= 3:
+            # Check for suspicious kernel combinations
+            order_str = "->".join(world.composition_order)
+            
+            # Pattern: Risk action without safety kernel
+            if any("risk" in k.lower() or "action" in k.lower() for k in world.composition_order):
+                has_safety = any("safety" in k.lower() or "arbiter" in k.lower() for k in world.composition_order)
+                if not has_safety:
+                    score += 0.25
+                    logger.debug(f"Risk action without safety review: {order_str}")
+            
+            # Pattern: Repeated same kernel (potential amplification attack)
+            if len(set(world.composition_order)) < len(world.composition_order):
+                score += 0.2
+                logger.debug(f"Kernel repetition detected: {order_str}")
+        
+        # 4) Output consistency checks
+        if len(world.outputs) >= 2:
+            # Check for contradictory outputs (different kernels claiming opposite facts)
+            # This is a simple heuristic; real logic needs domain knowledge
+            has_contradiction = False
+            for i, o1 in enumerate(world.outputs):
+                for o2 in world.outputs[i+1:]:
+                    if isinstance(o1, dict) and isinstance(o2, dict):
+                        shared_keys = set(o1.keys()) & set(o2.keys())
+                        for key in shared_keys:
+                            v1, v2 = o1.get(key), o2.get(key)
+                            if isinstance(v1, bool) and isinstance(v2, bool) and v1 != v2:
+                                has_contradiction = True
+                                logger.debug(f"Contradiction: {key}={v1} vs {v2}")
+            if has_contradiction:
+                score += 0.3
+        
+        # 5) Normalize and cap at 1.0
         return min(1.0, score)
 
     def find_violation_paths(self, worlds: List[CounterfactualWorld], threshold: float = 0.5) -> List[CounterfactualWorld]:
