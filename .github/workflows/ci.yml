@@ -27,6 +27,8 @@ jobs:
           pip install pre-commit
           # Install additional security tools
           pip install bandit safety detect-secrets
+          # Install cryptography for Ed25519 signature verification
+          pip install cryptography
 
       - name: Run Full Pre-Commit Suite (Lint, Format, Bandit, Mypy)
         run: |
@@ -46,6 +48,10 @@ jobs:
         run: |
           pip install pytest pytest-cov numpy
           pytest -q tests/ -k "not adversarial" --maxfail=1 --disable-warnings --cov=src --cov-report=xml
+
+      - name: Run Manifest & Kernel Security Tests
+        run: |
+          pytest -q tests/test_manifest_signature.py tests/test_kernel_metadata_tamper.py tests/test_composition_proof.py --maxfail=1 --disable-warnings -v
 
       - name: Run Adversarial Test Battery
         run: |
