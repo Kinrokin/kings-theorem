@@ -1,0 +1,30 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "KT SIT Manifest",
+  "type": "object",
+  "required": ["manifest_id","source_uri","schema_fingerprint","timestamp_ingest_utc","data_integrity_check","adversarial_scoring"],
+  "properties": {
+    "manifest_id": {"type":"string"},
+    "source_uri": {"type":"string"},
+    "schema_fingerprint": {"type":"string"},
+    "timestamp_ingest_utc": {"type":"string","format":"date-time"},
+    "data_integrity_check": {
+      "type":"object",
+      "properties": {
+        "chunk_count": {"type":"integer"},
+        "merkle_root_hash": {"type":"string"},
+        "compression_level_proxy": {"type":"number"}
+      },
+      "required":["chunk_count","merkle_root_hash"]
+    },
+    "adversarial_scoring": {
+      "type":"object",
+      "properties": {
+        "provenance_score": {"type":"number","minimum":0,"maximum":1},
+        "contamination_risk": {"type":"number","minimum":0,"maximum":1},
+        "anomaly_gating_status": {"type":"string"}
+      },
+      "required":["provenance_score","contamination_risk","anomaly_gating_status"]
+    }
+  }
+}

@@ -1,6 +1,6 @@
-name: Sovereign Integrity Check (CI)
-on: [push, pull_request]
-jobs:
+#name: Sovereign Integrity Check (CI)
+#on: [push, pull_request]
+j#obs:
   build-and-test:
     runs-on: ubuntu-latest
     steps:

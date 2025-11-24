@@ -1,4 +1,5 @@
-from typing import List, Dict, Set
+from typing import List, Dict, Set, Optional
+import os
 from .crypto import verify_signature
 
 # Define the critical action statuses that REQUIRE 2-of-2 signature
@@ -23,6 +24,7 @@ def verify_multisig(
     signatures: List[Dict[str, str]],
     required_count: int,
     policy_status: str = "EXECUTE",
+    keys_dir: Optional[str] = None,
 ) -> bool:
     """
     Verifies a set of signatures against a piece of data based on policy.
@@ -59,8 +61,23 @@ def verify_multisig(
         if not key_id or not signature:
             continue
 
+        # Resolve public key path
+        pub_path = key_id
+        if keys_dir:
+            # if key_id already looks like a file, use directly; else append
+            candidate = os.path.join(keys_dir, key_id)
+            if os.path.exists(candidate):
+                pub_path = candidate
+            else:
+                # try common extensions
+                for ext in ('.pub', '.pem'):
+                    candidate_ext = candidate + ext
+                    if os.path.exists(candidate_ext):
+                        pub_path = candidate_ext
+                        break
+
         try:
-            is_valid = verify_signature(data_to_verify, signature, key_id)
+            is_valid = verify_signature(pub_path, data_to_verify.encode() if isinstance(data_to_verify, str) else data_to_verify, signature)
         except Exception as e:
             raise InvalidSignatureError(f"Verification failed for key {key_id}: {e}")
 

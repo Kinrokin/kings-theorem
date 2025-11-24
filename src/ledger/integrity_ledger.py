@@ -65,7 +65,7 @@ class IntegrityLedger:
         os.replace(wal_tmp, wal_path)
         return token
 
-    def finalize_proposal(self, token, signature, rationale, kid='operator.pub'):
+    def finalize_proposal(self, token, signature=None, rationale=None, kid='operator.pub', signatures: list=None):
         wal_path = os.path.join(self.store_dir, f'{token}.precommit')
         wal_finalizing = os.path.join(self.store_dir, f'{token}.finalizing')
 
@@ -82,9 +82,45 @@ class IntegrityLedger:
             if time.time() - (entry['time']/1000.0) > entry['ttl_sec']:
                 raise LedgerError('TOKEN_EXPIRED', 'TTL Exceeded')
 
-            pub_key_path = os.path.join(self.keys_dir, kid)
-            if not verify_signature(pub_key_path, token.encode(), signature):
-                raise LedgerError('INVALID_SIGNATURE', 'Crypto verification failed')
+            # If a list of signatures is provided, verify them individually
+            auth_record = {}
+            if signatures:
+                valid_keys = []
+                for sig in signatures:
+                    kid_entry = sig.get('key_id')
+                    sig_b64 = sig.get('signature')
+                    pub_key_path = os.path.join(self.keys_dir, kid_entry) if kid_entry else None
+                    if not pub_key_path or not os.path.exists(pub_key_path):
+                        # try adding common extensions
+                        for ext in ('.pub', '.pem'):
+                            pext = os.path.join(self.keys_dir, kid_entry + ext)
+                            if os.path.exists(pext):
+                                pub_key_path = pext
+                                break
+
+                    if not pub_key_path or not os.path.exists(pub_key_path):
+                        raise LedgerError('INVALID_SIGNATURE', f'Public key for {kid_entry} not found')
+
+                    if not verify_signature(pub_key_path, token.encode(), sig_b64):
+                        raise LedgerError('INVALID_SIGNATURE', f'Crypto verification failed for {kid_entry}')
+                    valid_keys.append(kid_entry)
+
+                auth_record = {
+                    'signatures': signatures,
+                    'rationale': rationale,
+                    'kids': valid_keys,
+                    'ts': time.time()
+                }
+            else:
+                pub_key_path = os.path.join(self.keys_dir, kid)
+                if not verify_signature(pub_key_path, token.encode(), signature):
+                    raise LedgerError('INVALID_SIGNATURE', 'Crypto verification failed')
+                auth_record = {
+                    'signature': signature,
+                    'rationale': rationale,
+                    'kid': kid,
+                    'ts': time.time()
+                }
 
             if entry['prev_hash']!= self.last_hash:
                 raise LedgerError('CHAIN_DIVERGENCE', 'Tail moved during precommit')
@@ -92,12 +128,7 @@ class IntegrityLedger:
             # Update OCSF Status
             entry['status'] = 'COMMITTED'
             entry['status_id'] = 1
-            entry['auth'] = {
-                'signature': signature,
-                'rationale': rationale,
-                'kid': kid,
-                'ts': time.time()
-            }
+            entry['auth'] = auth_record
 
             final_str = json.dumps(entry, sort_keys=True, separators=(',', ':'))
             leaf_hash = sha256b(final_str.encode())
