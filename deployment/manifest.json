@@ -56,5 +56,7 @@
   },
   "generated_at": "2025-11-23T05:49:52.593690Z",
   "generator": "scripts/generate_manifest.py",
-  "signature": "QrxKPIceq3ghBU+jjaqYsoyyUkTV3rQNxLyn75oSIikVKzy6rFSVEck/UaaBnB7qDwuirCsK3ceBProZfZAiDQ=="
+  "content_hash": "fb2d25519e84b25dd684b033c36532db664e5279392429a38a71e8d02a8306b2",
+  "signature": "f2d3ace36c0ac7c028215b6b888e01c5d4ee70a432714420aff319f6147930865cd45c6c502796ee895e8255613a9e9284becfdedf0dbc2df623620f3f3d9104",
+  "signed_by": "ed25519"
 }

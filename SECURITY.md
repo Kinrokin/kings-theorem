@@ -532,6 +532,13 @@ See `.github/workflows/ci.yml` for automated `safety` and `bandit` scans on ever
 - Adversarial tests run in dedicated step
 - Coverage uploaded to Codecov with CI failure on drop
 
+## Rotation Log
+
+- 2025-11-24: Generated new Ed25519 key pair for manifests/kernels.
+    - Public key: `keys/ed25519_pub.pem`
+    - Fingerprint (SHA-256 of PEM): `514f37f16d673d60e642bfbd5a8efb801ae48d9a85616c605682aca5491d69cf`
+    - Actions: Updated local keys; prepared rotation script (`scripts/rotate_keys.py`); collaborators to update env vars `KT_MANIFEST_PUBKEY` and `KT_KERNEL_PUBKEY` as applicable.
+
 ### 11. Federated Source Management (Phase 4)
 
 **Registration Procedures:**

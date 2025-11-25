@@ -1,25 +1,21 @@
-﻿{
+{
   "AID": "deployment/serving_manifest.json",
   "Proof_ID": "PRF-SERVING-004",
   "Purpose": "Specification for high-throughput, speculative-decoded serving.",
-  
   "engine_type": "vLLM",
   "engine_version_min": "0.4.0",
   "inference_mode": "speculative_decoding",
-  
   "verifier": {
     "model_id": "fused_apex_model",
     "quantization": "BF16",
     "gpu_memory_strategy": "Paged_KV_Cache",
     "batching_strategy": "Continuous_Batching"
   },
-  
   "draft_model": {
     "model_id": "unsloth/Llama-3-8b-4bit-distilled",
     "tokenizer_id": "fused_apex_model",
     "quantization": "INT8"
   },
-  
   "speculative_decoding_config": {
     "initial_horizon_tokens": 5,
     "adaptive_horizon_loop": true,
@@ -29,9 +25,11 @@
     "increase_step": 1,
     "decrease_step": 1
   },
-  
   "safety_checks_required_at_runtime": [
     "Fusion_Delta_Norm_Check",
     "Tokenizer_Hash_Check"
-  ]
+  ],
+  "content_hash": "383e622e8789ad96b28d22fde86357a581e836e238c32a8707e57917f7693e2a",
+  "signature": "c8ecac5947cc4f95353f11e7b22fbbc75885a1e956a8b1e5354799179c1f563e8b4b01458c0b65fc2fd8e54a7d52505ac41b8cdeee74d1aacc08c318d00c660a",
+  "signed_by": "ed25519"
 }
