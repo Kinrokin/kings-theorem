@@ -5,9 +5,15 @@ import sys
 import json
 import os
 from typing import Optional, List
+from src.registry.ledger import RevocationLedger
 from src.manifest.signature import verify_manifest, CRYPTO_ED_AVAILABLE
 
-def verify_dir(path: str, pubkey_path: Optional[str] = None, hmac_secret: Optional[str] = None) -> int:
+def verify_dir(
+    path: str,
+    pubkey_path: Optional[str] = None,
+    hmac_secret: Optional[str] = None,
+    revocations_path: Optional[str] = None,
+) -> int:
     pubkey = None
     if pubkey_path:
         pubkey = open(pubkey_path, "rb").read()
@@ -20,6 +26,11 @@ def verify_dir(path: str, pubkey_path: Optional[str] = None, hmac_secret: Option
         print("No JSON files found under", path)
         return 1
     failures = []
+    rev_ledger = None
+    # Allow env var override for revocations file
+    rev_path = revocations_path or os.getenv("KT_REVOCATIONS_PATH")
+    if rev_path:
+        rev_ledger = RevocationLedger(rev_path)
     for f in files:
         try:
             m = json.load(open(f, "r", encoding="utf-8"))
@@ -34,6 +45,14 @@ def verify_dir(path: str, pubkey_path: Optional[str] = None, hmac_secret: Option
         else:
             print("Error: supply --pubkey or --hmac-secret for registry verification", file=sys.stderr)
             return 2
+
+        # Optional: revocation check
+        if ok and rev_ledger is not None:
+            # try multiple id keys
+            mid = m.get("evidence_id") or m.get("manifest_id") or m.get("id")
+            if mid and rev_ledger.is_revoked(str(mid)):
+                ok = False
+                reason = f"REVOKED:{mid}"
         if not ok:
             print(f"FAIL {f}: {reason}")
             failures.append((f, reason))
@@ -50,12 +69,18 @@ def build_parser():
     p.add_argument("--dir", "-d", required=True, help="Directory containing manifests (json)")
     p.add_argument("--pubkey", help="Public key PEM for Ed25519 verification")
     p.add_argument("--hmac-secret", help="HMAC secret (dev only)")
+    p.add_argument("--revocations", help="Path to JSONL revocation ledger (optional)")
     return p
 
 def main(argv=None):
     p = build_parser()
     args = p.parse_args(argv)
-    return verify_dir(args.dir, pubkey_path=args.pubkey, hmac_secret=args.hmac_secret)
+    return verify_dir(
+        args.dir,
+        pubkey_path=args.pubkey,
+        hmac_secret=args.hmac_secret,
+        revocations_path=args.revocations,
+    )
 
 if __name__ == "__main__":
     sys.exit(main())
