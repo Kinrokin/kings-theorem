@@ -3,8 +3,60 @@ name: Sovereign Integrity Check (CI)
 on: [push, pull_request]
 
 jobs:
+  # Job 1: Lockfile Validation (Supply Chain Integrity)
+  lockfile-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Validate Lockfile
+        run: |
+          python scripts/validate_lockfile.py --check
+        continue-on-error: true
+
+      - name: Upload lockfile status
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lockfile-status
+          path: lockfile_status.json
+
+  # Job 2: DSL Theorem Verification (Risk Threshold Enforcement)
+  verify-theorems:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install numpy pyyaml
+
+      - name: Run DSL Theorem Compiler
+        run: |
+          python scripts/verify_theorems.py --output theorem_output.json --threshold 0.001
+
+      - name: Upload theorem output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: theorem-output
+          path: theorem_output.json
+
   build-and-test:
     runs-on: ubuntu-latest
+    needs: [lockfile-validation, verify-theorems]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -52,7 +104,7 @@ jobs:
       - name: Generate SBOM (pip-licenses)
         run: |
           pip-licenses --format=json --with-license-file > sbom.json || true
-        
+
       - name: Upload SBOM
         if: always()
         uses: actions/upload-artifact@v4
@@ -77,9 +129,39 @@ jobs:
         run: |
           pytest -q tests/adversarial/ --maxfail=1 --disable-warnings -v
 
+      - name: Run Violation Heuristics Tests
+        run: |
+          pytest -q tests/test_violation_heuristics.py --maxfail=1 --disable-warnings -v
+
       - name: Upload coverage reports to Codecov (Rigor & Auditability Gate)
         uses: codecov/codecov-action@v3
         with:
           files: ./coverage.xml
           fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}
+
+  # Job 4: Append Results to Audit Ledger
+  audit-ledger:
+    runs-on: ubuntu-latest
+    needs: [build-and-test]
+    if: success()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Download theorem output
+        uses: actions/download-artifact@v4
+        with:
+          name: theorem-output
+          path: artifacts/
+
+      - name: Append to Audit Ledger
+        run: |
+          mkdir -p audit
+          echo "$(date -u +"%Y-%m-%dT%H:%M:%SZ") - CI Audit Entry" >> audit/ci_audit.log
+          cat artifacts/theorem_output.json >> audit/theorem_ledger.jsonl || true

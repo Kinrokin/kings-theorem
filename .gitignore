@@ -17,6 +17,12 @@ coverage.xml
 sbom.json
 bandit-report.json
 
+# CI/CD generated artifacts
+theorem_output.json
+lockfile_status.json
+audit/ci_audit.log
+audit/theorem_ledger.jsonl
+
 # Local virtualenvs
 .venv/
 venv/
