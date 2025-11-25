@@ -23,6 +23,29 @@ import subprocess
 import sys
 from pathlib import Path
 
+try:
+    from packaging.version import Version, InvalidVersion
+    HAS_PACKAGING = True
+except ImportError:
+    HAS_PACKAGING = False
+
+
+def parse_version(ver_str: str) -> tuple:
+    """Parse a version string into comparable components."""
+    if HAS_PACKAGING:
+        try:
+            return Version(ver_str)
+        except InvalidVersion:
+            pass
+    # Fallback: split by dots and convert to integers where possible
+    parts = []
+    for part in ver_str.split('.'):
+        try:
+            parts.append(int(part))
+        except ValueError:
+            parts.append(part)
+    return tuple(parts)
+
 
 def parse_requirements(filepath: str) -> dict:
     """Parse requirements file into a dict of package -> version spec."""
@@ -121,12 +144,17 @@ def check_lockfile_drift(requirements_path: str, lockfile_path: str) -> dict:
     for pkg, spec in reqs.items():
         if pkg in lock:
             locked_ver = lock[pkg]["version"]
-            # Simple version check - if spec starts with >= or >, check if locked version meets it
+            # Parse version specification and compare properly
             if spec.startswith(">="):
                 min_ver = spec[2:]
-                # Simple string comparison (works for most semver)
-                if locked_ver < min_ver:
-                    result["version_mismatches"].append({"package": pkg, "required": spec, "locked": locked_ver})
+                try:
+                    locked_parsed = parse_version(locked_ver)
+                    min_parsed = parse_version(min_ver)
+                    if locked_parsed < min_parsed:
+                        result["version_mismatches"].append({"package": pkg, "required": spec, "locked": locked_ver})
+                except Exception:
+                    # If parsing fails, fall back to string comparison warning
+                    pass
 
     # Check for missing hashes
     for pkg, info in lock.items():

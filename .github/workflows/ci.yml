@@ -15,10 +15,14 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Install packaging for version comparison
+        run: pip install packaging
+
       - name: Validate Lockfile
+        # Note: --strict would fail on missing hashes. Without it, missing hashes are warnings.
+        # Enable --strict in production for full supply chain integrity enforcement.
         run: |
-          python scripts/validate_lockfile.py --check
-        continue-on-error: true
+          python scripts/validate_lockfile.py --check || echo "::warning::Lockfile validation detected issues. Review lockfile_status.json for details."
 
       - name: Upload lockfile status
         if: always()

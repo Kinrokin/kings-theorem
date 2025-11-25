@@ -327,7 +327,14 @@ def compile_and_evaluate(
 
         # Apply threshold override if provided
         threshold = thresholds.get(bid, bound.value)
-        threshold_passed = bound.check(obs) if threshold == bound.value else (obs <= threshold if bound.operator in ["<=", "<"] else obs >= threshold)
+        if threshold == bound.value:
+            threshold_passed = bound.check(obs)
+        else:
+            # Use threshold override with same operator semantics
+            if bound.operator in ["<=", "<"]:
+                threshold_passed = obs <= threshold if bound.operator == "<=" else obs < threshold
+            else:
+                threshold_passed = obs >= threshold if bound.operator == ">=" else obs > threshold
 
         output.bound_results[bid] = {
             "metric": bound.metric,

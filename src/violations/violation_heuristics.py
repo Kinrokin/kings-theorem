@@ -115,12 +115,13 @@ class ChanceConstraintCertificate:
 
     def _compute_hash(self) -> str:
         """Compute SHA256 hash of certificate for integrity verification."""
+        # Round floating-point values to fixed precision for deterministic hashing
         data = {
             "certificate_id": self.certificate_id,
             "theorem_id": self.theorem_id,
             "violation_class": self.violation_class.value,
-            "probability_bound": self.probability_bound,
-            "observed_probability": self.observed_probability,
+            "probability_bound": round(self.probability_bound, 10),
+            "observed_probability": round(self.observed_probability, 10),
             "status": self.status,
             "timestamp": self.timestamp,
         }
@@ -331,14 +332,18 @@ class RiskProbabilityEngine:
 
         confidence = confidence or self.confidence_level
         arr = np.array(loss_distribution)
-        var_index = int(np.ceil(len(arr) * confidence)) - 1
-        sorted_losses = np.sort(arr)[::-1]  # Sort descending
+        n = len(arr)
 
-        if var_index >= len(sorted_losses):
-            return float(sorted_losses[0]) if len(sorted_losses) > 0 else 0.0
+        # Compute VaR index: number of samples to include in tail
+        # For CVaR at confidence level α, we want the expected loss in the worst (1-α) of cases
+        tail_proportion = 1.0 - confidence
+        tail_count = max(1, int(np.ceil(n * tail_proportion)))
 
-        # CVaR is the mean of losses above VaR
-        tail_losses = sorted_losses[: var_index + 1]
+        # Sort descending to get worst losses first
+        sorted_losses = np.sort(arr)[::-1]
+
+        # CVaR is the mean of the worst tail_count losses
+        tail_losses = sorted_losses[:tail_count]
         return float(np.mean(tail_losses))
 
     def evaluate_all_heuristics(
