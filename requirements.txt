@@ -6,6 +6,7 @@ scipy>=1.13.1
 metric-temporal-logic>=0.4.0
 streamlit>=1.30.0
 pyyaml>=6.0.0
+prometheus-client>=0.20.0
 
 # Apex Fine-Tuning Stack (ML Eng)
 torch>=2.3.0

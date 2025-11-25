@@ -5,6 +5,7 @@ import logging
 from typing import Dict, Any, List, Optional
 
 from src.manifest.signature import verify_manifest
+from src.metrics.metrics import record_kernel_attestation
 
 logger = logging.getLogger("kt.orchestrator.verify_kernels")
 logger.setLevel(logging.INFO)
@@ -34,6 +35,10 @@ def verify_kernel_metadata_list(
             # Track Arbiter failures specifically
             if m.get("type") == "Arbiter":
                 arbiter_failures.append(kid)
+        try:
+            record_kernel_attestation(bool(ok))
+        except Exception:
+            pass
     
     # Optionally fail-fast if any Arbiter fails verification
     if raise_on_arbiter_failure and arbiter_failures:

@@ -26,7 +26,7 @@ jobs:
           # Ensure pre-commit is available
           pip install pre-commit
           # Install additional security tools
-          pip install bandit safety detect-secrets
+          pip install bandit safety detect-secrets mypy pip-licenses
           # Install cryptography for Ed25519 signature verification
           pip install cryptography
 
@@ -43,6 +43,22 @@ jobs:
       - name: Run Dependency Vulnerability Scan (Safety)
         run: |
           safety check --json || true
+
+      - name: Static Type Check (mypy)
+        run: |
+          mypy --install-types --non-interactive || true
+          mypy src || true
+
+      - name: Generate SBOM (pip-licenses)
+        run: |
+          pip-licenses --format=json --with-license-file > sbom.json || true
+        
+      - name: Upload SBOM
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom.json
 
       - name: Run Main Test Suite
         run: |

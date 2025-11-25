@@ -5,6 +5,7 @@ from enum import Enum
 from typing import Set, Dict, List, Optional
 import uuid
 import logging
+from src.metrics.metrics import record_proof_check
 
 logger = logging.getLogger("kt.proofs")
 logger.setLevel(logging.INFO)
@@ -67,23 +68,39 @@ class ProofChecker:
             for pid in s.premises:
                 if pid not in step_map and pid not in proof.assumptions:
                     logger.debug("Missing premise %s in step %s", pid, s.step_id)
+                    try:
+                        record_proof_check(False)
+                    except Exception:
+                        pass
                     return ProofStatus.REFUTED
         
         # 2) detect cycles
         if self._has_cycle(step_map):
             logger.debug("Cycle detected in proof %s", proof.proof_id)
+            try:
+                record_proof_check(False)
+            except Exception:
+                pass
             return ProofStatus.CONTRADICTORY
         
         # 3) detect self-endorsement (proof citing its own conclusion)
         if not self.allow_self_reference:
             if self._has_self_endorsement(proof, step_map):
                 logger.debug("Self-endorsement detected in proof %s", proof.proof_id)
+                try:
+                    record_proof_check(False)
+                except Exception:
+                    pass
                 return ProofStatus.CONTRADICTORY
         
         # 4) enforce proof depth limits
         max_depth = self._compute_max_depth(step_map)
         if max_depth > self.max_proof_depth:
             logger.debug("Proof depth %d exceeds limit %d", max_depth, self.max_proof_depth)
+            try:
+                record_proof_check(False)
+            except Exception:
+                pass
             return ProofStatus.REFUTED
         
         # 5) check claimed invariants
@@ -94,11 +111,20 @@ class ProofChecker:
             claimed = proof.claimed_satisfactions.get(cref.id, False)
             if claimed and not valid:
                 logger.debug("Claimed invariant %s not satisfied", cref.id)
+                try:
+                    record_proof_check(False)
+                except Exception:
+                    pass
                 return ProofStatus.REFUTED
             if not claimed:
+                # pending does not count as success/failure
                 return ProofStatus.PENDING
         
         # If we get here, mark PROVEN
+        try:
+            record_proof_check(True)
+        except Exception:
+            pass
         return ProofStatus.PROVEN
 
     def _has_cycle(self, step_map: Dict[str, ProofStep]) -> bool:

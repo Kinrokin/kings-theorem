@@ -7,6 +7,7 @@ import os
 from typing import Optional, List
 from src.registry.ledger import RevocationLedger
 from src.manifest.signature import verify_manifest, CRYPTO_ED_AVAILABLE
+from src.metrics.metrics import record_manifest_verification
 
 def verify_dir(
     path: str,
@@ -56,8 +57,16 @@ def verify_dir(
         if not ok:
             print(f"FAIL {f}: {reason}")
             failures.append((f, reason))
+            try:
+                record_manifest_verification(False)
+            except Exception:
+                pass
         else:
             print(f"OK   {f}: {reason}")
+            try:
+                record_manifest_verification(True)
+            except Exception:
+                pass
     if failures:
         print(f"Verification failed for {len(failures)} files")
         return 3
