@@ -7,6 +7,10 @@ from src.governance.guardrail_dg_v1 import DeontologicalGuardrail
 from src.kernels.student_v42 import StudentKernelV42
 from src.kernels.teacher_v45 import TeacherKernelV45
 from src.primitives.dual_ledger import DualLedger
+from src.ethics.manifold import EthicalManifold, ManifoldProjector
+import logging
+
+logger = logging.getLogger("kt.arbiter")
 
 
 class ArbiterKernelV47:
@@ -16,11 +20,13 @@ class ArbiterKernelV47:
         ledger: DualLedger,
         student: StudentKernelV42,
         teacher: TeacherKernelV45,
+        ethical_manifold: EthicalManifold | None = None,
     ):
         self.guardrail = guardrail
         self.ledger = ledger
         self.student = student
         self.teacher = teacher
+        self.manifold_projector = ManifoldProjector(ethical_manifold) if ethical_manifold else None
 
     def adjudicate(self, problem):
         self.ledger.log("Arbiter", "Start", f"Adjudicating: {problem.get('task', 'Unknown')}")
@@ -51,6 +57,33 @@ class ArbiterKernelV47:
 
         else:
             final = {"outcome": "FAILED", "source": "System Exhaustion", "data": None}
+
+        # 3. Ethical manifold projection (if configured)
+        if self.manifold_projector:
+            # Derive a naive ethical vector from outcome contents (placeholder heuristic)
+            text = student_out.get("solution", "") if isinstance(student_out, dict) else ""
+            # Simple proxy counts (could be replaced by classifier outputs)
+            vector = {
+                "fairness": 0.8 if "fair" in text.lower() else 0.5,
+                "non_maleficence": 0.9 if "harm" not in text.lower() else 0.4,
+                "autonomy": 0.7,
+                "truth": 0.6 if "verify" in text.lower() else 0.5,
+            }
+            projected, inside = self.manifold_projector.project(vector)
+            delta = {k: projected[k] - vector.get(k, 0.0) for k in projected}
+            final["ethical_vector"] = vector
+            final["ethical_projected"] = projected
+            final["ethical_in_manifold"] = inside
+            final["ethical_delta"] = delta
+            self.ledger.log(
+                "Arbiter",
+                "Manifold",
+                {
+                    "inside": inside,
+                    "delta": delta,
+                },
+            )
+            logger.info("[Arbiter] Ethical manifold applied (inside=%s)", inside)
 
         self.ledger.log("Arbiter", "Ruling", final["outcome"])
         return final
