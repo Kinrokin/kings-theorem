@@ -1,6 +1,11 @@
 version: 1
-catastrophic_max: 0.05  # at most 5% catastrophic compositions
-high_max: 0.10
-medium_max: 0.20
+catastrophic_max: 0.05
+high_max: 0.1
+medium_max: 0.2
 min_samples: 512
-last_approved_by: "operator@local"
+last_approved_by: operator@local
+_signature:
+  signature: da4ec915bd2e12dd5d80c63a611bcb1da8c78f497f90fad4fdc4a6de2bfe1771f3cebf73291776dd5d6b4bbbaf19a4044b6600fe08b442c0e58f42b709e8760d  # pragma: allowlist secret
+  key_id: governance
+  timestamp: '2025-11-25T05:03:38.754566+00:00'
+  algorithm: ed25519

@@ -30,6 +30,10 @@
     "Tokenizer_Hash_Check"
   ],
   "content_hash": "383e622e8789ad96b28d22fde86357a581e836e238c32a8707e57917f7693e2a",
-  "signature": "c8ecac5947cc4f95353f11e7b22fbbc75885a1e956a8b1e5354799179c1f563e8b4b01458c0b65fc2fd8e54a7d52505ac41b8cdeee74d1aacc08c318d00c660a",
-  "signed_by": "ed25519"
+  "_signature": {
+    "signature": "da37f93e84e08cc4370b3563019de456d7bd13c5e68097e67a9b10c3768de9a456bf891bf6978cbc99b12e8474c5e4e6a2eb495c7ec25301e63abc0594947a06",
+    "key_id": "operator",
+    "timestamp": "2025-11-25T05:03:06.961279+00:00",
+    "algorithm": "ed25519"
+  }
 }

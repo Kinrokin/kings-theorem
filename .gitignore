@@ -1,11 +1,10 @@
 # Strict .gitignore for KingsTheorem repository
 
 # Critical secrets and keys
-keys/
-# Never commit private keys (allow public keys)
-keys/*_priv.pem
-keys/*.key
-!keys/*_pub.pem
+# Never commit private keys (allow public keys only)
+keys/*.pem
+keys/.test/
+!keys/*.pub
 
 # Runtime logs and audit trails
 logs/
