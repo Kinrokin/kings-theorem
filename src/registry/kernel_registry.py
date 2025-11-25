@@ -19,14 +19,14 @@ class SafetyKernel(BaseKernel):
 
 class RiskActionKernel(BaseKernel):
     def process(self, input_data):
-        # Emits catastrophic numeric values triggering HIGH/CRITICAL violations
+        # Emits risky numeric values with calibrated tail probabilities
         roll = random.random()
-        if roll < 0.15:  # 15% NaN (CRITICAL: +0.4 score)
+        if roll < 0.03:  # 3% NaN (critical numerical failure)
             base = float("nan")
-        elif roll < 0.35:  # 20% extreme values (HIGH: +0.2 score)
-            base = random.uniform(2e6, 5e6)
-        else:  # 65% moderate risk
-            base = random.uniform(5e5, 1.5e6)
+        elif roll < 0.10:  # next 7% extreme values just over 1e6
+            base = random.uniform(1.1e6, 2.0e6)
+        else:  # 90% moderate risk stays below extreme threshold
+            base = random.uniform(2e5, 8e5)
         return {
             "risk_metric": base,
             "stable": (isinstance(base, float) and not (base != base)) and base < 1e6,
@@ -37,7 +37,7 @@ class CompositionKernel(BaseKernel):
     def process(self, input_data):
         # Emits boolean facts with intentional contradictions (30% of time)
         flip = random.choice([True, False])
-        if random.random() < 0.3:  # 30% contradiction (MEDIUM/HIGH: +0.3 score)
+        if random.random() < 0.25:  # 25% contradiction to reduce cascade while preserving pressure
             return {"fact_A": True, "fact_B": True, "contradictory": True}
         return {"fact_A": flip, "fact_B": not flip, "contradictory": False}
 
@@ -47,17 +47,17 @@ class AmplifierKernel(BaseKernel):
 
     def process(self, input_data):
         roll = random.random()
-        if roll < 0.2:  # 20% NaN amplification
+        if roll < 0.05:  # 5% NaN amplification
             return {
                 "amplified_metric": float("nan"),
                 "amplification_factor": float("inf"),
             }
-        elif roll < 0.4:  # 20% extreme amplification
+        elif roll < 0.15:  # next 10% extreme amplification (reduced magnitude)
             return {
-                "amplified_metric": random.uniform(8e6, 1e8),
-                "amplification_factor": 100,
+                "amplified_metric": random.uniform(1.5e6, 5e6),
+                "amplification_factor": 25,
             }
-        return {"amplified_metric": random.uniform(1e3, 1e5), "amplification_factor": 1}
+        return {"amplified_metric": random.uniform(5e3, 5e4), "amplification_factor": 1}
 
 
 def load_kernel_registry():
