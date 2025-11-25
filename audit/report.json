@@ -1,0 +1,26 @@
+{
+  "git_head": "f9fd27c817920eda26aa6644b02c306693104598",
+  "files": {
+    "governance_md": true,
+    "security_md": true,
+    "release_md": true,
+    "post_scrub_notice": true,
+    "phase0_1_completion": true,
+    "revocation_ledger": true,
+    "proof_dsl": true,
+    "manifold": true,
+    "arbiter_kernel": true
+  },
+  "ci": {
+    "bandit": true,
+    "safety": true,
+    "mypy": true,
+    "sbom": true,
+    "adversarial_tests": true,
+    "all_present": true
+  },
+  "ethical_enforcement": true,
+  "revocation_support": true,
+  "acceptance_script": true,
+  "mvp2_compliance": true
+}
