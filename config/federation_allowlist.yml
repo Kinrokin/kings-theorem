@@ -1,0 +1,26 @@
+version: 1
+sources:
+  axiom_utility_maximization:
+    source_type: axiom
+    content_hash: 596e344d0ed2452c8aa1fb3516d71293810ba2cdb498d3fc9a947796a187df12
+    attested_by: operator@local
+    timestamp: '2025-11-25T05:22:21.962745+00:00'
+    metadata:
+      tradition: utilitarian
+      authority: bentham_mill
+  axiom_categorical_imperative:
+    source_type: axiom
+    content_hash: 726f56b9d654224533070dee4a4c1c9b3a0cc64cd98405b68d00ca3e3a0ee4e1
+    attested_by: operator@local
+    timestamp: '2025-11-25T05:22:21.962745+00:00'
+    metadata:
+      tradition: deontological
+      authority: kant
+  theological_golden_rule:
+    source_type: theological
+    content_hash: f59dcf94d9540124ec90088b4d44ac490643c314aaefa83cc281495a9e0ec57f
+    attested_by: operator@local
+    timestamp: '2025-11-25T05:22:21.963734+00:00'
+    metadata:
+      tradition: judeo_christian
+      authority: biblical

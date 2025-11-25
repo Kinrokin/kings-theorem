@@ -139,6 +139,7 @@ class ArbiterKernelV47:
                 self.ledger.log("Arbiter", "DSL_ERROR", str(e))
 
         # 4. Ethical manifold projection (if configured)
+        # PRE-GATE: Project before risk analysis to enforce ethical bounds
         if self.manifold_projector:
             # Derive a naive ethical vector from outcome contents (placeholder heuristic)
             text = student_out.get("solution", "") if isinstance(student_out, dict) else ""
@@ -155,6 +156,21 @@ class ArbiterKernelV47:
             final["ethical_projected"] = projected
             final["ethical_in_manifold"] = inside
             final["ethical_delta"] = delta
+            
+            # PRE-GATE ENFORCEMENT: If outside manifold, veto before risk analysis
+            if not inside:
+                veto_reason = f"Output violates ethical manifold bounds (delta: {delta})"
+                self.ledger.log("Arbiter", "MANIFOLD_VETO", {"reason": veto_reason, "delta": delta})
+                logger.warning("[Arbiter] Manifold pre-gate veto: %s", veto_reason)
+                return {
+                    "outcome": "VETOED",
+                    "reason": veto_reason,
+                    "ethical_vector": vector,
+                    "ethical_projected": projected,
+                    "ethical_delta": delta,
+                    "pceb_id": final.get("pceb_id"),
+                }
+            
             self.ledger.log(
                 "Arbiter",
                 "Manifold",

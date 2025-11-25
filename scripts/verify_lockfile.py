@@ -16,6 +16,10 @@ LOCK_PATH = ROOT / "requirements.lock"
 
 
 def _iter_requirement_blocks(lines: list[str]):
+    """Iterate requirement blocks, stripping comments for canonicalization.
+    
+    Prevents comment smuggling attacks by normalizing lockfile format.
+    """
     i = 0
     n = len(lines)
     while i < n:
@@ -25,12 +29,15 @@ def _iter_requirement_blocks(lines: list[str]):
             continue
         if "==" not in line:
             continue
-        header = line
+        # Strip inline comments for canonicalization (prevent smuggling)
+        header = line.split("#")[0].strip() if "#" in line else line
         block = []
         while i < n:
             nxt = lines[i]
             if nxt.startswith(" ") or nxt.startswith("\t") or nxt.strip().startswith("--hash="):
-                block.append(nxt.rstrip())
+                # Strip inline comments from continuation lines
+                cleaned = nxt.split("#")[0].rstrip() if "#" in nxt else nxt.rstrip()
+                block.append(cleaned)
                 i += 1
             else:
                 break
