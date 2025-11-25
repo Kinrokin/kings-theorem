@@ -46,70 +46,29 @@ This PR elevates the Kings Theorem codebase to production-grade quality through 
 - `tests/test_phase3_reasoning.py` - Proof validation, contradiction detection, counterfactual risk scenarios
 
 ### Governance Hardening
+# Pull Request: Kings Theorem v53 — MVP-2 Hardening (Phases 0–8)
 **Enhanced Modules:**
-- `src/utils/gov_config.py` - Policy-driven governance configuration loader
-- `src/governance/tri_governor.py` - Updated to use policy thresholds from config
-- `src/utils/multisig.py` - Multi-signature verification with Ed25519
 - `src/governance/decision_broker.py` - Added `finalize_with_signatures()` for multisig enforcement
 - `src/ledger/integrity_ledger.py` - Extended to accept multiple signatures on finalization
 - `src/governance/arbitration_kernel.py` - Arbitration kernel skeleton
 - `src/utils/sit_manifest.py` - SIT manifest schema validator
 
-**Configuration:**
-- `config/governance_policy.yaml` - Centralized governance policy definitions
-
-**Tests Added:**
-- `tests/test_gov_config.py` - Policy loading and threshold validation
-- `tests/test_multisig.py` - Signature verification edge cases
 - `tests/test_decision_broker.py` - Multisig workflow integration
 - `tests/test_decision_broker_edgecases.py` - Error handling scenarios
 
-### Test Infrastructure
-**Improvements:**
-- `tests/conftest.py` - Automatic PYTHONPATH resolution for nested workspace structure (fixes import errors for `kings_theorem` package and `src/` modules)
-
----
-
 ## 🔧 Code Quality Improvements
-
-### Formatting & Style
-- **Black formatter** applied to all Python files (line-length=120)
-- **isort** applied to organize imports (black-compatible profile)
-- **54 flake8 issues resolved:**
-  - Removed 25+ unused imports (json, time, os, yaml, Dict, base64, unsloth, etc.)
   - Replaced 4 bare `except:` with `except Exception:`
   - Removed 7 trailing blank lines
-  - Fixed ambiguous variable name (`l` → `length`)
-
 ### Type Safety
 - **mypy type annotations** added to:
-  - `src/reasoning/proof_system.py` - Optional types for evidence and required_invariants
-  - `src/algebra/constraint_expression.py` - Proper Literal types and None guards
-- **5 mypy errors resolved** in core reasoning and algebra modules
-
 ### Security
 - **Bandit security scan** completed:
-  - 2 medium-severity issues identified (hardcoded bind to 0.0.0.0 in dev servers)
-  - 7 low-severity issues (non-critical)
   - Zero high-severity vulnerabilities
 - **Dependency scan** (safety): No critical CVEs detected
-
 ### CI/CD
 - **Fixed `.github/workflows/ci.yml`** - Corrected YAML structure (keys: `name`, `on`, `jobs`)
-- **Removed BOM** from `pyproject.toml` to allow TOML parsers to work correctly
-
----
-
-## 🧪 Test Results
-
-```
-======================== test session starts ========================
 collected 36 items
 
-tests/test_arbiter.py ........                                [ 22%]
-tests/test_constitution.py .                                  [ 25%]
-tests/test_core_logic.py .                                    [ 27%]
-tests/test_decision_broker.py ....                            [ 38%]
 tests/test_decision_broker_edgecases.py .                     [ 41%]
 tests/test_gov_config.py .                                    [ 44%]
 tests/test_guardrail.py .                                     [ 47%]
