@@ -46,6 +46,17 @@ repos:
       - id: isort
         args: [--profile=black, --line-length=120]
 
+  # Lockfile validation hook for supply chain security
+  - repo: local
+    hooks:
+      - id: validate-lockfile
+        name: Validate lockfile
+        entry: python scripts/validate_lockfile.py --check
+        language: python
+        pass_filenames: false
+        always_run: true
+        stages: [commit]
+
   # Optional: run git-secrets if installed locally (no-op otherwise)
   - repo: local
     hooks:
