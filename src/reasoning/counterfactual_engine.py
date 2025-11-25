@@ -231,6 +231,9 @@ class CounterfactualEngine:
         Returns score in [0,1] where 1.0 = catastrophic violation.
         """
         score = 0.0
+        nan_flag = False
+        extreme_flag = False
+        contradiction_flag = False
 
         # 1) Lattice check (if available) - formal composability
         if self.lattice and world.constraints:
@@ -248,17 +251,16 @@ class CounterfactualEngine:
             if isinstance(o, dict):
                 for k, v in o.items():
                     if isinstance(v, (int, float)):
-                        # NaN/Inf detection
                         if isinstance(v, float) and (np.isnan(v) or np.isinf(v)):
-                            score += 0.4  # Critical numerical failure
+                            nan_flag = True
                             logger.debug(f"NaN/Inf detected in output: {k}={v}")
-                        # Extreme value detection
-                        if abs(v) > 1e6:
-                            score += 0.2
+                        elif abs(v) > 1e6:
+                            extreme_flag = True
                             logger.debug(f"Extreme value in output: {k}={v}")
-                        # Suspicious negative values in typically-positive domains
-                        if v < -1e6:
-                            score += 0.15
+                        elif v < -1e6:
+                            extreme_flag = True
+                    if k == "contradictory" and o.get("contradictory"):
+                        contradiction_flag = True
 
         # 3) Adversarial sequence patterns
         if len(world.composition_order) >= 3:
@@ -269,44 +271,39 @@ class CounterfactualEngine:
             if any("risk" in k.lower() or "action" in k.lower() for k in world.composition_order):
                 has_safety = any("safety" in k.lower() or "arbiter" in k.lower() for k in world.composition_order)
                 if not has_safety:
-                    score += 0.25
+                    score += 0.2
                     logger.debug(f"Risk action without safety review: {order_str}")
 
             # Pattern: Repeated same kernel (potential amplification attack)
             if len(set(world.composition_order)) < len(world.composition_order):
-                score += 0.2
+                score += 0.15
                 logger.debug(f"Kernel repetition detected: {order_str}")
 
         # 4) Output consistency checks
-        if len(world.outputs) >= 2:
-            # Check for contradictory outputs (different kernels claiming opposite facts)
-            has_contradiction = False
-            for i, o1 in enumerate(world.outputs):
-                for o2 in world.outputs[i + 1 :]:
-                    if isinstance(o1, dict) and isinstance(o2, dict):
-                        # Check explicit contradiction flag
-                        if o1.get("contradictory") or o2.get("contradictory"):
-                            has_contradiction = True
-                            logger.debug("Explicit contradiction flag detected")
-                        # Check shared keys with conflicting values
-                        shared_keys = set(o1.keys()) & set(o2.keys())
-                        for key in shared_keys:
-                            v1, v2 = o1.get(key), o2.get(key)
-                            if isinstance(v1, bool) and isinstance(v2, bool) and v1 != v2:
-                                has_contradiction = True
-                                logger.debug(f"Contradiction: {key}={v1} vs {v2}")
-            if has_contradiction:
-                score += 0.3
+        if len(world.outputs) >= 2 and contradiction_flag:
+            score += 0.25
+
+        # Aggregate numerical flags with diminishing returns
+        if nan_flag:
+            score += 0.35
+        if extreme_flag:
+            score += 0.15
+
+        # Safety damping: average safety_score reduces risk modestly
+        safety_scores = [o.get("safety_score") for o in world.outputs if isinstance(o, dict) and "safety_score" in o]
+        if safety_scores:
+            avg_safety = sum(safety_scores) / len(safety_scores)
+            score = max(0.0, score - avg_safety * 0.25)
 
         # 5) Classify violation severity and compute CVaR estimate
         world.violation_potential = min(1.0, score)
-        if score >= 0.8:
+        if score >= 0.85:
             world.violation_class = "CRITICAL"
             world.cvar_estimate = 0.001  # force to near-zero
-        elif score >= 0.5:
+        elif score >= 0.55:
             world.violation_class = "HIGH"
             world.cvar_estimate = min(0.05, score * 0.1)  # tail risk
-        elif score >= 0.25:
+        elif score >= 0.3:
             world.violation_class = "MEDIUM"
             world.cvar_estimate = min(0.15, score * 0.2)
         else:

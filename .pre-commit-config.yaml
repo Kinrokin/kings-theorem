@@ -14,21 +14,21 @@ repos:
       - id: mixed-line-ending
 
   - repo: https://github.com/Yelp/detect-secrets
-    rev: v1.4.0
+    rev: v1.5.0
     hooks:
       - id: detect-secrets
-        args: ['--baseline', '.secrets.baseline']
-        exclude: package.lock.json
-        stages: [manual]
+        args: ['--baseline', './.secrets.baseline']
+        exclude: ^\.secrets\.baseline$|package\.lock\.json
+        stages: [commit]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.1.6
     hooks:
       - id: ruff-format
-        stages: [manual]
+        stages: [commit]
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix]
-        stages: [manual]
+        stages: [commit]
 
   - repo: https://github.com/PyCQA/bandit
     rev: 1.7.5
