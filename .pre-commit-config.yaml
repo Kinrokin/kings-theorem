@@ -45,3 +45,14 @@ repos:
     hooks:
       - id: isort
         args: [--profile=black, --line-length=120]
+
+  # Optional: run git-secrets if installed locally (no-op otherwise)
+  - repo: local
+    hooks:
+      - id: git-secrets-scan
+        name: git-secrets scan
+        entry: git
+        args: ["secrets", "--scan", "--cached"]
+        language: system
+        pass_filenames: false
+        stages: [commit]
