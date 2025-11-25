@@ -2,9 +2,24 @@
 
 # Critical secrets and keys
 keys/
+# Never commit private keys (allow public keys)
+keys/*_priv.pem
+keys/*.key
+!keys/*_pub.pem
 
 # Runtime logs and audit trails
 logs/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage*
+coverage.xml
+sbom.json
+bandit-report.json
+
+# Local virtualenvs
+.venv/
+venv/
 
 # Large, generated or binary model artifacts
 docker/ollama_models/
@@ -12,15 +27,44 @@ docker/ollama_models/
 # Python cache and bytecode
 __pycache__/
 *.pyc
+.pyo
+*.pyd
 
 # Environment files
 .env
+.env.*
+.envrc
 
 # Test artifacts/datasets not intended for repo
 tests/store_div/
+
+# Build and dist
+dist/
+build/
+*.egg-info/
+
+# IDE/editor settings
+.vscode/
+.idea/
 
 # Editor/OS files
 .DS_Store
 Thumbs.db
 # Archive of local backups and dumps (do not track)
 /archive/dumps/
+
+# Generated models and artifacts
+models/
+
+# Docker local caches and model blobs
+docker/ollama_models/
+docker/**/history
+
+# Lean compiled artifacts
+theorem/**/*.olean
+
+# Misc local outputs
+*.log
+*.tmp
+*.bak
+unified_proof.json
