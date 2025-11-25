@@ -1,0 +1,20 @@
+version: 1
+kernels:
+  RiskActionKernel:
+    module_path: C:\KingsTheorem_v53\kings-theorem-v53\src\registry\kernel_registry.py
+    module_hash: 83aa63d7cc2b9320a992ed061bf6539e38ac7b8dfbdb347cf5d2e1697cb6546a
+    class_name: RiskActionKernel
+    approved_by: operator@local
+    timestamp: '2025-11-25T05:12:33.416687+00:00'
+  AmplifierKernel:
+    module_path: C:\KingsTheorem_v53\kings-theorem-v53\src\registry\kernel_registry.py
+    module_hash: 83aa63d7cc2b9320a992ed061bf6539e38ac7b8dfbdb347cf5d2e1697cb6546a
+    class_name: AmplifierKernel
+    approved_by: operator@local
+    timestamp: '2025-11-25T05:12:33.416687+00:00'
+  CompositionKernel:
+    module_path: C:\KingsTheorem_v53\kings-theorem-v53\src\registry\kernel_registry.py
+    module_hash: 83aa63d7cc2b9320a992ed061bf6539e38ac7b8dfbdb347cf5d2e1697cb6546a
+    class_name: CompositionKernel
+    approved_by: operator@local
+    timestamp: '2025-11-25T05:12:33.416687+00:00'
