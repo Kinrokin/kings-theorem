@@ -1,3 +1,9 @@
+import pytest
+
+def pytest_configure(config):
+    config.addinivalue_line("markers", "kt_bias: Bias coverage / tradition diversity tests")
+    config.addinivalue_line("markers", "kt_emotion: Emotional palette invariants")
+    config.addinivalue_line("markers", "kt_composition: Composition safety and theorem checks")
 import os
 import sys
 

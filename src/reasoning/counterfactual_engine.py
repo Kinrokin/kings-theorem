@@ -138,6 +138,29 @@ class CounterfactualEngine:
                 uniq[key] = w
         return list(uniq.values())
 
+    def sample_violation_probability(self, input_data: Any = None, samples: int = 256) -> float:
+        """Monte Carlo estimate of probability of catastrophic composition violation.
+
+        Draw random compositions, evaluate violation_potential, count proportion >= 0.8.
+        """
+        if not self.kernels:
+            return 0.0
+        kernel_ids = list(self.kernels.keys())
+        catastrophic = 0
+        for _ in range(samples):
+            size = self.rng.randint(1, min(5, len(kernel_ids)))
+            order = self.rng.sample(kernel_ids, k=size)
+            self.rng.shuffle(order)
+            try:
+                outs = [self.kernels[k].process(input_data) for k in order]
+                world = CounterfactualWorld(composition_order=order, outputs=outs)
+                world.violation_potential = self._evaluate_violation(world)
+                if world.violation_potential >= 0.8:
+                    catastrophic += 1
+            except Exception:
+                continue
+        return catastrophic / samples if samples else 0.0
+
     def _explore_legacy(self, kernel_outputs: List[Any], constraints: Set[Constraint]) -> List[CounterfactualWorld]:
         """Legacy exploration method for backward compatibility."""
         worlds = []

@@ -5,6 +5,9 @@ import logging
 from typing import Dict, Any, List, Optional
 
 from src.manifest.signature import verify_manifest
+from pathlib import Path
+import os
+from src.registry.revocation_gate import is_revoked
 from src.metrics.metrics import record_kernel_attestation
 
 logger = logging.getLogger("kt.orchestrator.verify_kernels")
@@ -71,4 +74,12 @@ def boot_verify_and_enforce(
                 break
     if not arbiter_ok:
         raise RuntimeError("No valid Arbiter kernel found; refusing to start orchestrator.")
-    logger.info("Kernel metadata verification passed. Orchestrator may proceed.")
+    # Revocation enforcement: if any kernel_id revoked, abort
+    ledger_path = Path(os.getenv("KT_REVOCATION_LEDGER", "src/registry/ledger.py"))
+    # Ledger file may be JSONL chain, but we only need revoked ids; reuse gate loader
+    for m in kernel_manifests:
+        kid = m.get("kernel_id")
+        if kid and is_revoked(kid, ledger_path):
+            raise RuntimeError(f"Kernel '{kid}' revoked in ledger; refusing to start.")
+
+    logger.info("Kernel metadata + revocation checks passed. Orchestrator may proceed.")

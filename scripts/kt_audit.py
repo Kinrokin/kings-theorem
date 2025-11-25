@@ -51,6 +51,15 @@ def get_git_head() -> str:
         return "unknown"
 
 
+def _run_pytest_marker(marker: str) -> dict:
+    try:
+        proc = subprocess.run(["pytest", "-q", f"-m {marker}"], cwd=ROOT, capture_output=True, text=True)
+        output = proc.stdout + proc.stderr
+        return {"marker": marker, "returncode": proc.returncode, "output": output[:2000]}
+    except Exception as e:
+        return {"marker": marker, "error": str(e)}
+
+
 def build_report() -> dict:
     ci_content = read_ci()
     report = {
@@ -71,6 +80,20 @@ def build_report() -> dict:
         "revocation_support": file_exists("scripts/revoke_manifest.py"),
         "acceptance_script": file_exists("scripts/acceptance_check.py"),
     }
+    # Tagged test execution (bias/emotion/composition) - best effort
+    report["tests"] = {
+        "bias": _run_pytest_marker("kt_bias"),
+        "emotion": _run_pytest_marker("kt_emotion"),
+        "composition": _run_pytest_marker("kt_composition"),
+    }
+
+    # Counterfactual risk sampling (if engine available)
+    try:
+        from src.reasoning.counterfactual_engine import CounterfactualEngine
+        engine = CounterfactualEngine(kernel_registry={})  # empty kernels placeholder
+        report["counterfactual_risk"] = engine.sample_violation_probability(samples=64)
+    except Exception:
+        report["counterfactual_risk"] = None
     report["mvp2_compliance"] = all([
         report["files"]["governance_md"],
         report["files"]["security_md"],
