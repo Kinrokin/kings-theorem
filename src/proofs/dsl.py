@@ -10,10 +10,10 @@ Evaluation checks provided evidence dict for required constraint satisfaction.
 This is a placeholder to evolve into a richer DSL.
 """
 from __future__ import annotations
+
+import re
 from dataclasses import dataclass
 from typing import Dict, List
-import re
-
 
 CONSTRAINT_RE = re.compile(r"^constraint\s+(?P<cid>[A-Za-z0-9_]+):\s*(?P<body>.+)$")
 THEOREM_RE = re.compile(r"^theorem\s+(?P<tid>[A-Za-z0-9_]+):\s*(?P<body>.+)$")
@@ -26,7 +26,10 @@ class Constraint:
 
     def evaluate(self, evidence: Dict[str, float]) -> bool:
         # VERY minimal parser: metric OP value
-        m = re.match(r"^(?P<metric>[A-Za-z0-9_]+)\s*(>=|<=|>|<|==)\s*(?P<val>[0-9]*\.?[0-9]+)$", self.expr)
+        m = re.match(
+            r"^(?P<metric>[A-Za-z0-9_]+)\s*(>=|<=|>|<|==)\s*(?P<val>[0-9]*\.?[0-9]+)$",
+            self.expr,
+        )
         if not m:
             return False
         metric = m.group("metric")
@@ -66,6 +69,34 @@ class ProofProgram:
         for tid, th in self.theorems.items():
             results[tid] = th.check(self.constraints, evidence)
         return results
+
+    def evaluate_to_json(self, evidence: Dict[str, float]) -> dict:
+        """Produce machine-readable JSON artifact for CI gating."""
+        import hashlib
+        import json
+        import time
+
+        results = self.evaluate(evidence)
+        theorems_output = []
+        for tid, passed in results.items():
+            th = self.theorems[tid]
+            theorems_output.append(
+                {
+                    "theorem": tid,
+                    "status": "PASS" if passed else "FAIL",
+                    "antecedents": th.antecedents,
+                    "consequent": th.consequent,
+                    "evidence": evidence,
+                }
+            )
+        artifact = {
+            "timestamp": time.time(),
+            "theorems": theorems_output,
+            "all_pass": all(results.values()),
+        }
+        payload = json.dumps(artifact, sort_keys=True)
+        artifact["certificate"] = hashlib.sha256(payload.encode()).hexdigest()
+        return artifact
 
 
 def parse(source: str) -> ProofProgram:

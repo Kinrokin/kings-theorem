@@ -1,13 +1,16 @@
 # src/reasoning/counterfactual_engine.py
 from __future__ import annotations
+
 import itertools
-import random
 import logging
+import random
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Set
+
 import numpy as np
 
 from src.algebra.constraint_lattice import Constraint, ConstraintLattice
+
 from .dependency_graph import DependencyGraph
 
 logger = logging.getLogger("kt.reasoning.counterfactual")
@@ -27,6 +30,9 @@ class CounterfactualWorld:
     composition_order: List[str] = field(default_factory=list)
     outputs: List[Dict[str, Any]] = field(default_factory=list)
     metadata: Dict[str, Any] = field(default_factory=dict)
+    # CVaR-based violation classification
+    violation_class: str = "LOW"  # CRITICAL, HIGH, MEDIUM, LOW
+    cvar_estimate: float = 0.0  # CVaR at 99.9%
 
 
 class CounterfactualEngine:
@@ -35,7 +41,12 @@ class CounterfactualEngine:
     Enhanced with probabilistic sampling, dependency awareness, and Monte Carlo exploration.
     """
 
-    def __init__(self, constraint_lattice: ConstraintLattice = None, kernel_registry: Dict[str, Any] = None, rng_seed: int = 42):
+    def __init__(
+        self,
+        constraint_lattice: ConstraintLattice = None,
+        kernel_registry: Dict[str, Any] = None,
+        rng_seed: int = 42,
+    ):
         """
         constraint_lattice: optional ConstraintLattice for composability checks
         kernel_registry: dict mapping kernel_id -> kernel_instance with .process(input)->dict
@@ -48,17 +59,22 @@ class CounterfactualEngine:
         self.deps = DependencyGraph()
         for kid in self.kernels.keys():
             self.deps.add_node(kid)
+        # CVaR thresholds for violation classes
+        self.cvar_critical = 0.001  # probability must be forced to 0
+        self.cvar_high = 0.05  # tail-risk threshold
+        self.cvar_medium = 0.15  # degraded performance
+        # Above medium = LOW class
 
     def add_dependency(self, a: str, b: str):
         self.deps.add_edge(a, b)
 
     def explore_composition_space(
-        self, 
-        kernel_outputs: List[Any] = None, 
+        self,
+        kernel_outputs: List[Any] = None,
         constraints: Set[Constraint] = None,
         input_data: Any = None,
-        max_perms: int = 2000, 
-        monte_carlo_samples: int = 5000
+        max_perms: int = 2000,
+        monte_carlo_samples: int = 5000,
     ) -> List[CounterfactualWorld]:
         """
         Explore all possible compositions of kernel outputs under constraints.
@@ -84,7 +100,7 @@ class CounterfactualEngine:
                     world = CounterfactualWorld(
                         composition_order=list(perm),
                         outputs=outs,
-                        composition_path=list(perm)
+                        composition_path=list(perm),
                     )
                     world.violation_potential = self._evaluate_violation(world)
                     worlds.append(world)
@@ -105,7 +121,7 @@ class CounterfactualEngine:
                         world = CounterfactualWorld(
                             composition_order=list(perm),
                             outputs=outs,
-                            composition_path=list(perm)
+                            composition_path=list(perm),
                         )
                         world.violation_potential = self._evaluate_violation(world)
                         worlds.append(world)
@@ -120,11 +136,7 @@ class CounterfactualEngine:
             self.rng.shuffle(order)
             try:
                 outs = [self.kernels[k].process(input_data) for k in order]
-                world = CounterfactualWorld(
-                    composition_order=order,
-                    outputs=outs,
-                    composition_path=order
-                )
+                world = CounterfactualWorld(composition_order=order, outputs=outs, composition_path=order)
                 world.violation_potential = self._evaluate_violation(world)
                 worlds.append(world)
             except Exception as e:
@@ -138,10 +150,11 @@ class CounterfactualEngine:
                 uniq[key] = w
         return list(uniq.values())
 
-    def sample_violation_probability(self, input_data: Any = None, samples: int = 256) -> float:
+    def sample_violation_probability(self, input_data: Any = None, samples: int = 512) -> float:
         """Monte Carlo estimate of probability of catastrophic composition violation.
 
         Draw random compositions, evaluate violation_potential, count proportion >= 0.8.
+        Increased default samples to 512 for better path discovery.
         """
         if not self.kernels:
             return 0.0
@@ -155,6 +168,9 @@ class CounterfactualEngine:
                 outs = [self.kernels[k].process(input_data) for k in order]
                 world = CounterfactualWorld(composition_order=order, outputs=outs)
                 world.violation_potential = self._evaluate_violation(world)
+                logger.debug(
+                    f"Sample {_}: order={order}, score={world.violation_potential:.3f}, class={world.violation_class}"
+                )
                 if world.violation_potential >= 0.8:
                     catastrophic += 1
             except Exception:
@@ -181,7 +197,10 @@ class CounterfactualEngine:
         Implements the 'Pre-Mortem' logic and checks composition safety.
         """
         world = CounterfactualWorld(
-            constraints=constraints, kernel_outputs={}, composition_path=path, violation_potential=0.0
+            constraints=constraints,
+            kernel_outputs={},
+            composition_path=path,
+            violation_potential=0.0,
         )
 
         # --- 1. COMPOSABILITY CHECK (The Axiomatic Barrier) ---
@@ -212,7 +231,7 @@ class CounterfactualEngine:
         Returns score in [0,1] where 1.0 = catastrophic violation.
         """
         score = 0.0
-        
+
         # 1) Lattice check (if available) - formal composability
         if self.lattice and world.constraints:
             try:
@@ -223,7 +242,7 @@ class CounterfactualEngine:
             except Exception as e:
                 score += 0.2  # Unknown/error state
                 logger.debug(f"Lattice check error: {e}")
-        
+
         # 2) Numerical instability detection
         for o in world.outputs:
             if isinstance(o, dict):
@@ -240,32 +259,36 @@ class CounterfactualEngine:
                         # Suspicious negative values in typically-positive domains
                         if v < -1e6:
                             score += 0.15
-        
+
         # 3) Adversarial sequence patterns
         if len(world.composition_order) >= 3:
             # Check for suspicious kernel combinations
             order_str = "->".join(world.composition_order)
-            
+
             # Pattern: Risk action without safety kernel
             if any("risk" in k.lower() or "action" in k.lower() for k in world.composition_order):
                 has_safety = any("safety" in k.lower() or "arbiter" in k.lower() for k in world.composition_order)
                 if not has_safety:
                     score += 0.25
                     logger.debug(f"Risk action without safety review: {order_str}")
-            
+
             # Pattern: Repeated same kernel (potential amplification attack)
             if len(set(world.composition_order)) < len(world.composition_order):
                 score += 0.2
                 logger.debug(f"Kernel repetition detected: {order_str}")
-        
+
         # 4) Output consistency checks
         if len(world.outputs) >= 2:
             # Check for contradictory outputs (different kernels claiming opposite facts)
-            # This is a simple heuristic; real logic needs domain knowledge
             has_contradiction = False
             for i, o1 in enumerate(world.outputs):
-                for o2 in world.outputs[i+1:]:
+                for o2 in world.outputs[i + 1 :]:
                     if isinstance(o1, dict) and isinstance(o2, dict):
+                        # Check explicit contradiction flag
+                        if o1.get("contradictory") or o2.get("contradictory"):
+                            has_contradiction = True
+                            logger.debug("Explicit contradiction flag detected")
+                        # Check shared keys with conflicting values
                         shared_keys = set(o1.keys()) & set(o2.keys())
                         for key in shared_keys:
                             v1, v2 = o1.get(key), o2.get(key)
@@ -274,10 +297,27 @@ class CounterfactualEngine:
                                 logger.debug(f"Contradiction: {key}={v1} vs {v2}")
             if has_contradiction:
                 score += 0.3
-        
-        # 5) Normalize and cap at 1.0
+
+        # 5) Classify violation severity and compute CVaR estimate
+        world.violation_potential = min(1.0, score)
+        if score >= 0.8:
+            world.violation_class = "CRITICAL"
+            world.cvar_estimate = 0.001  # force to near-zero
+        elif score >= 0.5:
+            world.violation_class = "HIGH"
+            world.cvar_estimate = min(0.05, score * 0.1)  # tail risk
+        elif score >= 0.25:
+            world.violation_class = "MEDIUM"
+            world.cvar_estimate = min(0.15, score * 0.2)
+        else:
+            world.violation_class = "LOW"
+            world.cvar_estimate = score * 0.05
+
+        # 6) Normalize and cap at 1.0
         return min(1.0, score)
 
-    def find_violation_paths(self, worlds: List[CounterfactualWorld], threshold: float = 0.5) -> List[CounterfactualWorld]:
+    def find_violation_paths(
+        self, worlds: List[CounterfactualWorld], threshold: float = 0.5
+    ) -> List[CounterfactualWorld]:
         """Find worlds where violations occur (Viability Threshold > threshold)."""
         return [w for w in worlds if w.violation_potential > threshold]

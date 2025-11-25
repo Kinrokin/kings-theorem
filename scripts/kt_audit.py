@@ -10,12 +10,14 @@ Generates a JSON report summarizing:
 Future expansion: execute tagged tests, collect metrics, produce PDF.
 """
 from __future__ import annotations
+
 import json
-import os
-from pathlib import Path
 import subprocess
+import sys
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 
 
 def file_exists(rel: str) -> bool:
@@ -55,7 +57,11 @@ def _run_pytest_marker(marker: str) -> dict:
     try:
         proc = subprocess.run(["pytest", "-q", f"-m {marker}"], cwd=ROOT, capture_output=True, text=True)
         output = proc.stdout + proc.stderr
-        return {"marker": marker, "returncode": proc.returncode, "output": output[:2000]}
+        return {
+            "marker": marker,
+            "returncode": proc.returncode,
+            "output": output[:2000],
+        }
     except Exception as e:
         return {"marker": marker, "error": str(e)}
 
@@ -80,6 +86,14 @@ def build_report() -> dict:
         "revocation_support": file_exists("scripts/revoke_manifest.py"),
         "acceptance_script": file_exists("scripts/acceptance_check.py"),
     }
+    # Revocation chain integrity
+    try:
+        from src.registry.ledger import RevocationLedger
+
+        ledger = RevocationLedger()
+        report["revocation_chain_ok"] = ledger.verify_chain()
+    except Exception:
+        report["revocation_chain_ok"] = None
     # Tagged test execution (bias/emotion/composition) - best effort
     report["tests"] = {
         "bias": _run_pytest_marker("kt_bias"),
@@ -90,25 +104,46 @@ def build_report() -> dict:
     # Counterfactual risk sampling (if engine available)
     try:
         from src.reasoning.counterfactual_engine import CounterfactualEngine
-        engine = CounterfactualEngine(kernel_registry={})  # empty kernels placeholder
-        report["counterfactual_risk"] = engine.sample_violation_probability(samples=64)
-    except Exception:
+        from src.registry.kernel_registry import load_kernel_registry
+
+        # Use deterministic seed for audit reproducibility, vary for real exploration
+        engine = CounterfactualEngine(kernel_registry=load_kernel_registry(), rng_seed=99)
+        report["counterfactual_risk"] = engine.sample_violation_probability(samples=512)
+    except Exception as e:
         report["counterfactual_risk"] = None
-    report["mvp2_compliance"] = all([
-        report["files"]["governance_md"],
-        report["files"]["security_md"],
-        report["files"]["release_md"],
-        report["files"]["revocation_ledger"],
-        report["files"]["proof_dsl"],
-        report["ethical_enforcement"],
-        report["ci"]["all_present"],
-        report["revocation_support"],
-    ])
+        report["counterfactual_risk_error"] = str(e)
+    # PCEB ledger integrity
+    try:
+        from src.ledger.pceb_ledger import verify_chain as verify_pceb_chain
+
+        report["pceb_chain_ok"] = verify_pceb_chain()
+    except Exception:
+        report["pceb_chain_ok"] = None
+    # Emotion drift ledger integrity
+    try:
+        from src.ledger.emotion_drift_ledger import verify_chain as verify_drift_chain
+
+        report["emotion_drift_chain_ok"] = verify_drift_chain()
+    except Exception:
+        report["emotion_drift_chain_ok"] = None
+    report["mvp2_compliance"] = all(
+        [
+            report["files"]["governance_md"],
+            report["files"]["security_md"],
+            report["files"]["release_md"],
+            report["files"]["revocation_ledger"],
+            report["files"]["proof_dsl"],
+            report["ethical_enforcement"],
+            report["ci"]["all_present"],
+            report["revocation_support"],
+        ]
+    )
     return report
 
 
 def main():
     import argparse
+
     ap = argparse.ArgumentParser(description="Generate constitutional compliance audit report")
     ap.add_argument("--out", default="audit/report.json", help="Output path for JSON report")
     args = ap.parse_args()

@@ -1,0 +1,6 @@
+version: 1
+catastrophic_max: 0.05  # at most 5% catastrophic compositions
+high_max: 0.10
+medium_max: 0.20
+min_samples: 512
+last_approved_by: "operator@local"

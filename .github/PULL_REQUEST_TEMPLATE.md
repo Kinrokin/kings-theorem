@@ -1,3 +1,26 @@
+## Summary
+
+Describe the change and its purpose. Link to any related issues.
+
+## Changes
+- [ ] Security: provenance, attestation, revocation
+- [ ] Observability: /metrics, counters
+- [ ] CI/CD: bandit, safety, mypy, SBOM, pre-commit
+- [ ] Tests: unit/integration/adversarial
+- [ ] Docs: GOVERNANCE, SECURITY, RELEASE, notices
+
+## Checklist
+- [ ] All tests pass locally
+- [ ] CI green (bandit, safety, mypy, SBOM)
+- [ ] Secret scanning clean (`detect-secrets` baseline updated if needed)
+- [ ] No breaking API changes
+- [ ] Post-merge actions prepared (announce, env vars, tag)
+
+## Post-merge Actions
+- [ ] Announce history rewrite (if applicable) and re-clone steps
+- [ ] Update `KT_MANIFEST_PUBKEY`/`KT_KERNEL_PUBKEY` in all environments
+- [ ] Verify nightly red-team run status
+- [ ] Tag release
 ## 👑 King's Theorem Change Proposal
 
 ### 🎯 Objective

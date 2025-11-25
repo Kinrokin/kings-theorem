@@ -1,0 +1,20 @@
+{
+  "timestamp": 1764038327.7591627,
+  "theorems": [
+    {
+      "theorem": "T1",
+      "status": "PASS",
+      "antecedents": [
+        "C1",
+        "C2"
+      ],
+      "consequent": "COMPOSITION_SAFE",
+      "evidence": {
+        "fairness": 0.75,
+        "traditions": 3
+      }
+    }
+  ],
+  "all_pass": true,
+  "certificate": "619a84a06ba9982077635713d919c304af995ca730c6de006aec9522c298d516"
+}

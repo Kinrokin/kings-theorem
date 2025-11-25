@@ -1,5 +1,5 @@
 {
-  "git_head": "49522ef9d2c5dc1317bf5921beb41a190faea8d1",
+  "git_head": "882388f551ad9ed86c9ccd7d89ef9eabff989f15",
   "files": {
     "governance_md": true,
     "security_md": true,
@@ -22,23 +22,26 @@
   "ethical_enforcement": true,
   "revocation_support": true,
   "acceptance_script": true,
+  "revocation_chain_ok": true,
   "tests": {
     "bias": {
       "marker": "kt_bias",
-      "returncode": 2,
-      "output": "\n=================================== ERRORS ====================================\n______________ ERROR collecting tests/test_composition_proof.py _______________\nImportError while importing test module 'C:\\KingsTheorem_v53\\kings-theorem-v53\\tests\\test_composition_proof.py'.\nHint: make sure your test modules/packages have valid Python names.\nTraceback:\nC:\\Users\\rober\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\importlib\\__init__.py:126: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntests\\test_composition_proof.py:2: in <module>\n    from src.algebra.composer import compose_steps\nsrc\\algebra\\composer.py:7: in <module>\n    from src.proofs.proof_lang import ProofObject, ProofStep, ProofChecker, ConstraintRef\nsrc\\proofs\\proof_lang.py:8: in <module>\n    from src.metrics.metrics import record_proof_check\nsrc\\metrics\\metrics.py:2: in <module>\n    from prometheus_client import Counter\nE   ModuleNotFoundError: No module named 'prometheus_client'\n____________ ERROR collecting tests/test_kernel_metadata_tamper.py ____________\nImportError while importing test module 'C:\\KingsTheorem_v53\\kings-theorem-v53\\tests\\test_kernel_metadata_tamper.py'.\nHint: make sure your test modules/packages have valid Python names.\nTraceback:\nC:\\Users\\rober\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\importlib\\__init__.py:126: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntests\\test_kernel_metadata_tamper.py:4: in <module>\n    from src.orchestrator.verify_kernels import verify_kernel_metadata_list\nsrc\\orchestrator\\verify_kernels.py:11: in <module>\n    from src.metrics.metrics import record_kernel_attestation\nsrc\\metrics\\metrics.py:2: in <module>\n    from prometheus_client import Counter\nE   ModuleNotFoundError: No module named 'prometheus_client'\n______________ ERROR collecting tests/test_proof_meta_checks.py"
+      "returncode": 0,
+      "output": ".                                                                        [100%]\n1 passed, 121 deselected in 1.38s\n"
     },
     "emotion": {
       "marker": "kt_emotion",
-      "returncode": 2,
-      "output": "\n=================================== ERRORS ====================================\n______________ ERROR collecting tests/test_composition_proof.py _______________\nImportError while importing test module 'C:\\KingsTheorem_v53\\kings-theorem-v53\\tests\\test_composition_proof.py'.\nHint: make sure your test modules/packages have valid Python names.\nTraceback:\nC:\\Users\\rober\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\importlib\\__init__.py:126: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntests\\test_composition_proof.py:2: in <module>\n    from src.algebra.composer import compose_steps\nsrc\\algebra\\composer.py:7: in <module>\n    from src.proofs.proof_lang import ProofObject, ProofStep, ProofChecker, ConstraintRef\nsrc\\proofs\\proof_lang.py:8: in <module>\n    from src.metrics.metrics import record_proof_check\nsrc\\metrics\\metrics.py:2: in <module>\n    from prometheus_client import Counter\nE   ModuleNotFoundError: No module named 'prometheus_client'\n____________ ERROR collecting tests/test_kernel_metadata_tamper.py ____________\nImportError while importing test module 'C:\\KingsTheorem_v53\\kings-theorem-v53\\tests\\test_kernel_metadata_tamper.py'.\nHint: make sure your test modules/packages have valid Python names.\nTraceback:\nC:\\Users\\rober\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\importlib\\__init__.py:126: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntests\\test_kernel_metadata_tamper.py:4: in <module>\n    from src.orchestrator.verify_kernels import verify_kernel_metadata_list\nsrc\\orchestrator\\verify_kernels.py:11: in <module>\n    from src.metrics.metrics import record_kernel_attestation\nsrc\\metrics\\metrics.py:2: in <module>\n    from prometheus_client import Counter\nE   ModuleNotFoundError: No module named 'prometheus_client'\n______________ ERROR collecting tests/test_proof_meta_checks.py"
+      "returncode": 0,
+      "output": "..                                                                       [100%]\n2 passed, 120 deselected in 1.42s\n"
     },
     "composition": {
       "marker": "kt_composition",
-      "returncode": 2,
-      "output": "\n=================================== ERRORS ====================================\n______________ ERROR collecting tests/test_composition_proof.py _______________\nImportError while importing test module 'C:\\KingsTheorem_v53\\kings-theorem-v53\\tests\\test_composition_proof.py'.\nHint: make sure your test modules/packages have valid Python names.\nTraceback:\nC:\\Users\\rober\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\importlib\\__init__.py:126: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntests\\test_composition_proof.py:2: in <module>\n    from src.algebra.composer import compose_steps\nsrc\\algebra\\composer.py:7: in <module>\n    from src.proofs.proof_lang import ProofObject, ProofStep, ProofChecker, ConstraintRef\nsrc\\proofs\\proof_lang.py:8: in <module>\n    from src.metrics.metrics import record_proof_check\nsrc\\metrics\\metrics.py:2: in <module>\n    from prometheus_client import Counter\nE   ModuleNotFoundError: No module named 'prometheus_client'\n____________ ERROR collecting tests/test_kernel_metadata_tamper.py ____________\nImportError while importing test module 'C:\\KingsTheorem_v53\\kings-theorem-v53\\tests\\test_kernel_metadata_tamper.py'.\nHint: make sure your test modules/packages have valid Python names.\nTraceback:\nC:\\Users\\rober\\AppData\\Local\\Programs\\Python\\Python311\\Lib\\importlib\\__init__.py:126: in import_module\n    return _bootstrap._gcd_import(name[level:], package, level)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\ntests\\test_kernel_metadata_tamper.py:4: in <module>\n    from src.orchestrator.verify_kernels import verify_kernel_metadata_list\nsrc\\orchestrator\\verify_kernels.py:11: in <module>\n    from src.metrics.metrics import record_kernel_attestation\nsrc\\metrics\\metrics.py:2: in <module>\n    from prometheus_client import Counter\nE   ModuleNotFoundError: No module named 'prometheus_client'\n______________ ERROR collecting tests/test_proof_meta_checks.py"
+      "returncode": 0,
+      "output": ".                                                                        [100%]\n1 passed, 121 deselected in 1.31s\n"
     }
   },
-  "counterfactual_risk": 0.0,
+  "counterfactual_risk": 0.12890625,
+  "pceb_chain_ok": true,
+  "emotion_drift_chain_ok": true,
   "mvp2_compliance": true
 }
