@@ -1,4 +1,4 @@
-﻿"""
+"""
 AID: /src/governance/guardrail_dg_v1.py
 Proof ID: PRF-DG-002-REGEX
 Axiom: Axiom 6: Ethical Governance (Advanced)
@@ -85,6 +85,39 @@ class DeontologicalGuardrail:
         if isinstance(solution, dict) and "type" in solution:
             if solution["type"] == "SACRIFICE_MINORITY" and self.rules.get("RULE_PROTECT_MINORITY"):
                 return False
+        return True
+
+    def validate_solution(self, solution: dict) -> bool:
+        """Structured solution validation.
+
+        Rejects forbidden action flags regardless of accompanying rationale.
+        Looks for top-level keys: proposed_actions, tags, actions.
+        """
+        if not isinstance(solution, dict):
+            return False
+        forbidden_action_types = {"SACRIFICE_MINORITY", "DANGEROUS_TRADE"}
+
+        # Direct tags
+        tags = solution.get("tags", [])
+        if any(t.upper() in forbidden_action_types for t in tags if isinstance(t, str)):
+            return False
+
+        # Proposed actions list
+        actions = solution.get("proposed_actions") or solution.get("actions") or []
+        if isinstance(actions, list):
+            for a in actions:
+                if isinstance(a, dict):
+                    atype = str(a.get("type", "")).upper()
+                    if atype in forbidden_action_types:
+                        return False
+                elif isinstance(a, str) and a.upper() in forbidden_action_types:
+                    return False
+
+        # Numeric configs (example heuristic: disallow utility > 900 with minority sacrifice intent)
+        for a in actions:
+            if isinstance(a, dict):
+                if str(a.get("type", "")).upper() == "SACRIFICE_MINORITY" and float(a.get("utility", 0)) > 900:
+                    return False
         return True
 
     def _fuzzy_match(self, text: str, threshold: float = 0.85) -> bool:

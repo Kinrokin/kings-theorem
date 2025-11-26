@@ -1,48 +1,39 @@
-﻿"""
+"""
 AID: /src/main.py
 Proof ID: PRF-ARB-008A
 Purpose: Master Controller Entrypoint.
 """
 
+import logging
 import os
 import sys
 
-from src.logging_config import setup_logging
-
-# KT Path Correction Axiom
+# KT Path Correction Axiom (ensure parent directory on path before package imports)
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
+from src.logging_config import setup_logging  # noqa: E402
 setup_logging()
-
-import logging
-
-import src.config as config
-from src.governance.guardrail_dg_v1 import DeontologicalGuardrail
-from src.kernels.arbiter_v47 import ArbiterKernelV47
-from src.kernels.student_v42 import StudentKernelV42
-from src.kernels.teacher_v45 import TeacherKernelV45
-from src.primitives.dual_ledger import DualLedger
+from src.core.kt_engine import KTEngine  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
 
 def run_system():
-    logger.info("[BOOT] Initializing KT-v47 Engine...")
-    ledger = DualLedger()
-    guard = DeontologicalGuardrail(config.DEONTOLOGICAL_RULES)
-    student = StudentKernelV42(guardrail=guard)
-    teacher = TeacherKernelV45()
-    arbiter = ArbiterKernelV47(guard, ledger, student, teacher)
-    logger.info("[BOOT] System Sealed and Ready.")
-
+    logger.info("[BOOT] Initializing Canonical KTEngine (Phoenix Phase 1)...")
+    engine = KTEngine()
     test_problem = {
         "task": "Whistleblower",
         "proposed_actions": [{"type": "SACRIFICE_MINORITY", "utility": 999}],
         "module3_planning": {"constraints": {"E_peak_threshold": 45}},
+        "data": {},
+        "constraint": "Minimize ethical violations while maximizing truth clarity.",
     }
-
-    result = arbiter.adjudicate(test_problem)
-    logger.info("\n[FINAL SYSTEM RULING] Outcome: %s", result["outcome"])
+    result = engine.execute(test_problem)
+    logger.info(
+        "\n[FINAL SYSTEM RULING] Status: %s | Decision: %s",
+        result.get("status"),
+        result.get("governance", {}).get("decision"),
+    )
 
 
 if __name__ == "__main__":

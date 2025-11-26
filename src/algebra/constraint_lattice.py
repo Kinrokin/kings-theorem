@@ -1,12 +1,78 @@
+"""Constraint Lattice (Phase 2)
+
+Unified file containing both heuristic parse helpers (for Phoenix wiring)
+and the existing richer Constraint/ConstraintLattice abstractions used by
+the counterfactual engine. Duplicate functionality intentionally merged.
+"""
+
 from __future__ import annotations
 
 import hashlib
 import json
+import re
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 from .conflict_matrix import check_conflict
+
+# --- Heuristic section (Phoenix) ---
+RISK_PATTERN = re.compile(r"RISK\s*<\s*(\d+)(?:%?)", re.IGNORECASE)
+
+
+def parse(problem: Dict[str, Any]) -> Dict[str, Any]:
+    text = str(problem.get("constraint", ""))
+    risk_matches = RISK_PATTERN.findall(text)
+    risk_bounds = [int(m) for m in risk_matches]
+    profit = "MAXIMIZE PROFIT" in text.upper()
+    zero_risk = "RISK=0" in text.upper() or "ZERO RISK" in text.upper()
+    return {
+        "raw": text,
+        "risk_bounds": risk_bounds,
+        "profit_goal": profit,
+        "zero_risk": zero_risk,
+    }
+
+
+def meet(c1: Dict[str, Any], c2: Dict[str, Any]) -> Dict[str, Any]:
+    b1 = c1.get("risk_bounds", [])
+    b2 = c2.get("risk_bounds", [])
+    chosen = []
+    if b1 or b2:
+        combined = b1 + b2
+        chosen = [min(combined)]
+    return {
+        "risk_bounds": chosen,
+        "profit_goal": c1.get("profit_goal") or c2.get("profit_goal"),
+        "zero_risk": c1.get("zero_risk") or c2.get("zero_risk"),
+    }
+
+
+def is_composable(constraints_list: List[Dict[str, Any]]) -> bool:
+    profit = any(c.get("profit_goal") for c in constraints_list)
+    zero_risk = any(c.get("zero_risk") for c in constraints_list)
+    return not (profit and zero_risk)
+
+
+def verify(solution: Dict[str, Any], lattice_constraints: Dict[str, Any]) -> bool:
+    if not isinstance(solution, dict):
+        return False
+    outcome = solution.get("outcome") or solution.get("status")
+    if outcome and str(outcome).upper() in {"VETOED", "FAILED"}:
+        return True
+    bounds = lattice_constraints.get("risk_bounds", [])
+    if not bounds:
+        return True
+    strict_bound = min(bounds)
+    gov = solution.get("governance") or {}
+    risk_score = gov.get("risk_score")
+    if risk_score is None:
+        return True
+    threshold = strict_bound / 100.0
+    return risk_score <= threshold
+
+
+# --- Rich lattice section (legacy engine dependencies) ---
 
 
 class ConstraintType(Enum):
@@ -21,8 +87,8 @@ class ConstraintType(Enum):
 class Constraint:
     id: str
     type: ConstraintType
-    expression: str  # A canonical string / small AST or SMT expression
-    strength: float  # 0.0..1.0 (higher = stronger)
+    expression: str
+    strength: float
     domain: str
     proof_obligation: bool = False
 
@@ -46,13 +112,12 @@ class CompositionResult:
     safe: bool
     score: float
     conflicts: List[str] = field(default_factory=list)
-    witness: Optional[dict] = None  # optional counterexample
+    witness: Optional[dict] = None
     provenance: List[str] = field(default_factory=list)
 
 
 class ConstraintLattice:
     def __init__(self):
-        # dominance numeric value for types (higher means more dominant)
         self.hierarchy = {
             ConstraintType.SAFETY: 0.0,
             ConstraintType.OPERATIONAL: 0.3,
@@ -69,9 +134,8 @@ class ConstraintLattice:
         new_expr = f"({c1.expression}) AND ({c2.expression})"
         new_domain = c1.domain if c1.domain == c2.domain else "composite"
         cid = canonical_hash({"meet": [c1.as_json(), c2.as_json()]})
-        # Invariant checks: type must be known and strength in [0,1]
-        assert new_type in self.hierarchy, "meet produced unknown type"
-        assert 0.0 <= new_strength <= 1.0, "meet produced invalid strength"
+        assert new_type in self.hierarchy
+        assert 0.0 <= new_strength <= 1.0
         return Constraint(
             id=cid,
             type=new_type,
@@ -89,9 +153,8 @@ class ConstraintLattice:
         new_expr = f"({c1.expression}) OR ({c2.expression})"
         new_domain = c1.domain if c1.domain == c2.domain else "composite"
         cid = canonical_hash({"join": [c1.as_json(), c2.as_json()]})
-        # Invariant checks
-        assert new_type in self.hierarchy, "join produced unknown type"
-        assert 0.0 <= new_strength <= 1.0, "join produced invalid strength"
+        assert new_type in self.hierarchy
+        assert 0.0 <= new_strength <= 1.0
         return Constraint(
             id=cid,
             type=new_type,
@@ -102,40 +165,50 @@ class ConstraintLattice:
         )
 
     def is_composable(self, cs: Set[Constraint]) -> Tuple[bool, CompositionResult]:
-        """
-        Conservative composition check. Returns CompositionResult with
-        conflicts if any incompatibilities found.
-        """
-        # Quick trivial checks: duplicate contradictory domain-level rules
-        # 1) If any pair has direct syntactic contradiction (expr == NOT other.expr), mark conflict.
         conflicts = []
         provenance = [c.id for c in cs]
         score_accum = sum(c.strength for c in cs) / max(1, len(cs))
-
-        # Pairwise conflict heuristics (extendable): contradictory types with high strength
         for a in cs:
             for b in cs:
                 if a == b:
                     continue
-                # Early domain-level conflict check
                 conflict = check_conflict(a.domain, b.domain)
                 if conflict:
                     conflicts.append(f"Domain conflict {a.domain} vs {b.domain}: {conflict}")
                     continue
-                # Exact contradiction heuristic
                 if a.expression.strip().lower() == f"not ({b.expression.strip().lower()})":
                     conflicts.append(f"Direct contradiction between {a.id} and {b.id}")
-                # Safety vs. high-risk operational conflict: if safety strong and op strong -> conflict
-                if a.type == ConstraintType.SAFETY and b.type == ConstraintType.OPERATIONAL:
-                    if a.strength >= 0.8 and b.strength >= 0.8:
-                        conflicts.append(f"Safety({a.id}) vs Operational({b.id}) high-strength conflict")
-                # Ethical vs. pragmatic: if ethics strong and op contradictory expression substring
-                if a.type == ConstraintType.ETHICAL and b.type == ConstraintType.OPERATIONAL:
-                    if a.strength >= 0.9 and "(optimize" in b.expression.lower():
-                        conflicts.append(f"Ethical({a.id}) likely conflicts with Operational optimization {b.id}")
+                if (
+                    a.type == ConstraintType.SAFETY
+                    and b.type == ConstraintType.OPERATIONAL
+                    and a.strength >= 0.8
+                    and b.strength >= 0.8
+                ):
+                    conflicts.append(f"Safety({a.id}) vs Operational({b.id}) high-strength conflict")
+                if (
+                    a.type == ConstraintType.ETHICAL
+                    and b.type == ConstraintType.OPERATIONAL
+                    and a.strength >= 0.9
+                    and "(optimize" in b.expression.lower()
+                ):
+                    conflicts.append(f"Ethical({a.id}) vs Operational optimization {b.id}")
         if conflicts:
             return False, CompositionResult(
-                safe=False, score=score_accum, conflicts=conflicts, witness=None, provenance=provenance
+                safe=False,
+                score=score_accum,
+                conflicts=conflicts,
+                witness=None,
+                provenance=provenance,
             )
-        # else return safe
         return True, CompositionResult(safe=True, score=score_accum, provenance=provenance)
+
+
+__all__ = [
+    "parse",
+    "meet",
+    "is_composable",
+    "verify",
+    "ConstraintType",
+    "Constraint",
+    "ConstraintLattice",
+]

@@ -156,7 +156,7 @@ class ArbiterKernelV47:
             final["ethical_projected"] = projected
             final["ethical_in_manifold"] = inside
             final["ethical_delta"] = delta
-            
+
             # PRE-GATE ENFORCEMENT: If outside manifold, veto before risk analysis
             if not inside:
                 veto_reason = f"Output violates ethical manifold bounds (delta: {delta})"
@@ -170,7 +170,7 @@ class ArbiterKernelV47:
                     "ethical_delta": delta,
                     "pceb_id": final.get("pceb_id"),
                 }
-            
+
             self.ledger.log(
                 "Arbiter",
                 "Manifold",
@@ -182,7 +182,7 @@ class ArbiterKernelV47:
             logger.info("[Arbiter] Ethical manifold applied (inside=%s)", inside)
 
         # 5. Emotion drift monitoring
-        solution_text = student_out.get("solution", "") if isinstance(student_out, dict) else ""
+        solution_text = (student_out.get("solution") or "") if isinstance(student_out, dict) else ""
         tone = classify_tone(solution_text)
         drift = self.emotion_monitor.record(tone)
         final["emotion_tone"] = tone

@@ -1,20 +1,19 @@
-"""
-AID: /src/server.py
-Proof ID: API-GATEWAY-001
-Axiom: Integration
-
-Purpose: Wraps the KT-v47 Engine in a FastAPI server.
-"""
+"""FastAPI Server Wrapper for Canonical KTEngine (Phoenix Phase 4)."""
 
 import logging
+import os
+import sys
 from typing import Any, Dict, Optional
 
-import uvicorn
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+# Ensure project root on path before importing src.* modules
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from src.logging_config import setup_logging
-from src.main import KTEngine
+import uvicorn  # noqa: E402
+from fastapi import FastAPI, HTTPException  # noqa: E402
+from pydantic import BaseModel  # noqa: E402
+
+from src.core.kt_engine import KTEngine  # noqa: E402
+from src.logging_config import setup_logging  # noqa: E402
 
 setup_logging()
 logger = logging.getLogger(__name__)
@@ -69,7 +68,11 @@ def solve_problem(request: ProblemRequest):
         )
 
     except Exception as e:
-        logger.exception("Unhandled exception while solving request %s: %s", getattr(request, "problem_id", "N/A"), e)
+        logger.exception(
+            "Unhandled exception while solving request %s: %s",
+            getattr(request, "problem_id", "N/A"),
+            e,
+        )
         raise HTTPException(status_code=500, detail=str(e))
 
 
