@@ -220,7 +220,7 @@ async def run_with_retry(
         Prevents timing oracle attacks by using constant delay regardless
         of retry count. Jitter prevents statistical analysis of retry patterns.
     """
-    import random
+    import secrets
 
     last_result: Optional[ExecResult] = None
 
@@ -228,7 +228,8 @@ async def run_with_retry(
         if attempt > 0:
             # Constant-time delay with random jitter (±20%)
             # Prevents oracle from inferring retry count via timing
-            jitter = random.uniform(-0.2, 0.2)
+            sr = secrets.SystemRandom()
+            jitter = sr.uniform(-0.2, 0.2)
             delay = backoff_sec * (1.0 + jitter)
             logger.info(f"{task_name} retry {attempt}/{max_retries} after fixed backoff")
             await asyncio.sleep(delay)
@@ -243,13 +244,16 @@ async def run_with_retry(
             logger.warning(f"{task_name} non-retryable error: {result.error_code.value}")
             # Still wait same delay as retryable case to prevent timing leak
             if attempt < max_retries:
-                jitter = random.uniform(-0.2, 0.2)
+                sr = secrets.SystemRandom()
+                jitter = sr.uniform(-0.2, 0.2)
                 delay = backoff_sec * (1.0 + jitter)
                 await asyncio.sleep(delay)
             return result
 
     # All retries exhausted
-    assert last_result is not None
+    if last_result is None:
+        logger.error("%s exhausted %d retries and no result captured", task_name, max_retries)
+        raise RuntimeError(f"{task_name} exhausted retries without result")
     logger.error(f"{task_name} exhausted {max_retries} retries")
     return last_result
 

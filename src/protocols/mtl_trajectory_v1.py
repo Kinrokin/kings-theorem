@@ -212,7 +212,7 @@ class MTLTrajectoryVerifier:
             try:
                 # Evaluate predicate at this step
                 # nosec B307: eval used for MTL temporal logic formulas with controlled namespace
-                predicate_holds = eval(
+                predicate_holds = eval(  # nosec B307: controlled namespace for MTL predicates
                     formula.predicate, {"self": self, "trajectory": trajectory, "step_idx": step_idx}
                 )
 
@@ -238,7 +238,7 @@ class MTLTrajectoryVerifier:
         for step_idx in range(min_step, max_step + 1):
             try:
                 # nosec B307: eval used for MTL temporal logic formulas with controlled namespace
-                predicate_holds = eval(
+                predicate_holds = eval(  # nosec B307: controlled namespace for MTL predicates
                     formula.predicate, {"self": self, "trajectory": trajectory, "step_idx": step_idx}
                 )
 

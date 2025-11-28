@@ -143,9 +143,10 @@ class KTAgentV1:
             return default
 
     def _decode_action(self, student_raw: str, teacher_raw: str) -> Dict[str, Any]:
-        for candidate in (student_raw, teacher_raw):
+        for source_label, candidate in (("student", student_raw), ("teacher", teacher_raw)):
             try:
                 return json.loads(candidate)
-            except Exception:
-                continue
+            except json.JSONDecodeError as e:
+                logger.debug("Action decode failed for %s payload: %s", source_label, e)
+                # fall through to try the next candidate
         return {"type": "noop"}

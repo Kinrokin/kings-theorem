@@ -5,236 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KT Mission Control</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
-            color: #eee;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            padding: 20px;
-            min-height: 100vh;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        h1 {
-            color: #00bcd4;
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            text-shadow: 0 0 10px rgba(0, 188, 212, 0.5);
-        }
-
-        .subtitle {
-            color: #888;
-            font-size: 1.1em;
-            margin-bottom: 30px;
-            font-style: italic;
-        }
-
-        .status-box {
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px solid #444;
-            padding: 25px;
-            margin-bottom: 20px;
-            border-radius: 12px;
-            backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
-        }
-
-        .status-box:hover {
-            border-color: #00bcd4;
-            box-shadow: 0 0 20px rgba(0, 188, 212, 0.3);
-        }
-
-        .status-box h2 {
-            color: #00bcd4;
-            font-size: 1.8em;
-            margin-bottom: 15px;
-            border-bottom: 2px solid #444;
-            padding-bottom: 10px;
-        }
-
-        .status-box h3 {
-            color: #4682b4;
-            font-size: 1.4em;
-            margin-bottom: 15px;
-        }
-
-        .status-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 15px;
-        }
-
-        .status-item {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 4px solid #00bcd4;
-        }
-
-        .status-item label {
-            color: #999;
-            font-size: 0.9em;
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        .status-item strong {
-            color: #fff;
-            font-size: 1.5em;
-            display: block;
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 1.1em;
-            margin-top: 10px;
-        }
-
-        .status-running {
-            background: #228b22;
-            color: white;
-        }
-
-        .status-paused {
-            background: #d4a017;
-            color: black;
-        }
-
-        .status-stopping {
-            background: #b22222;
-            color: white;
-        }
-
-        .status-offline {
-            background: #555;
-            color: white;
-        }
-
-        .controls {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            margin-top: 20px;
-        }
-
-        .btn {
-            padding: 15px 30px;
-            font-size: 1.1em;
-            font-weight: bold;
-            border: none;
-            cursor: pointer;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
-        }
-
-        .btn:active {
-            transform: translateY(0);
-        }
-
-        .btn-pause {
-            background: linear-gradient(135deg, #d4a017 0%, #ffd700 100%);
-            color: black;
-        }
-
-        .btn-pause:hover {
-            background: linear-gradient(135deg, #ffd700 0%, #d4a017 100%);
-        }
-
-        .btn-resume {
-            background: linear-gradient(135deg, #228b22 0%, #32cd32 100%);
-            color: white;
-        }
-
-        .btn-resume:hover {
-            background: linear-gradient(135deg, #32cd32 0%, #228b22 100%);
-        }
-
-        .btn-stop {
-            background: linear-gradient(135deg, #b22222 0%, #ff4444 100%);
-            color: white;
-        }
-
-        .btn-stop:hover {
-            background: linear-gradient(135deg, #ff4444 0%, #b22222 100%);
-        }
-
-        .btn-unlock {
-            background: linear-gradient(135deg, #4682b4 0%, #5f9ea0 100%);
-            color: white;
-        }
-
-        .btn-unlock:hover {
-            background: linear-gradient(135deg, #5f9ea0 0%, #4682b4 100%);
-        }
-
-        .governance-box {
-            border-color: #4682b4 !important;
-        }
-
-        .locked-indicator {
-            background: rgba(178, 34, 34, 0.2);
-            border: 2px solid #b22222;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-        }
-
-        .unlocked-indicator {
-            background: rgba(34, 139, 34, 0.2);
-            border: 2px solid #228b22;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-        }
-
-        @keyframes pulse {
-            0% {
-                opacity: 1;
-            }
-
-            50% {
-                opacity: 0.6;
-            }
-
-            100% {
-                opacity: 1;
-            }
-        }
-
-        .pulse {
-            animation: pulse 2s ease-in-out infinite;
-        }
-
-        footer {
-            text-align: center;
-            margin-top: 40px;
-            padding: 20px;
-            color: #666;
-            border-top: 1px solid #333;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', path='control_styles.css') }}">
 </head>
 
 <body>
@@ -273,8 +44,8 @@
                 </div>
             </div>
 
-            <div style="margin-top: 20px;">
-                <label style="color: #999;">Engine State:</label>
+            <div class="engine-state">
+                <label class="muted-999">Engine State:</label>
                 {% if paused %}
                 <span class="status-badge status-paused pulse">⏸ PAUSED</span>
                 {% elif stopped %}
@@ -292,16 +63,16 @@
             <h2>🎮 Control Panel</h2>
 
             <div class="controls">
-                <form action="/action" method="post" style="display:inline;">
+                <form action="/action" method="post" class="inline-form">
                     {% if paused %}
-                    <button name="command" value="RESUME" class="btn btn-resume">▶ RESUME LOOP</button>
+                    <button type="submit" name="command" value="RESUME" class="btn btn-resume">▶ RESUME LOOP</button>
                     {% else %}
-                    <button name="command" value="PAUSE" class="btn btn-pause">⏸ PAUSE LOOP</button>
+                    <button type="submit" name="command" value="PAUSE" class="btn btn-pause">⏸ PAUSE LOOP</button>
                     {% endif %}
                 </form>
 
-                <form action="/action" method="post" style="display:inline;">
-                    <button name="command" value="STOP" class="btn btn-stop"
+                <form action="/action" method="post" class="inline-form">
+                    <button type="submit" name="command" value="STOP" class="btn btn-stop"
                         onclick="return confirm('⚠️ This will trigger a graceful shutdown. Are you sure?')">
                         🛑 EMERGENCY STOP
                     </button>
@@ -316,7 +87,7 @@
             {% if next_level_locked %}
             <div class="locked-indicator">
                 <strong>🔒 Level {{ next_level }} is LOCKED</strong>
-                <p style="margin-top: 10px; color: #ccc;">
+                <p class="mt-10 muted-ccc">
                     The system has reached promotion threshold but requires human authorization to advance.
                     This prevents unauthorized capability jumps.
                 </p>
@@ -324,7 +95,7 @@
 
             <form action="/action" method="post">
                 <input type="hidden" name="level" value="{{ next_level }}">
-                <button name="command" value="UNLOCK" class="btn btn-unlock"
+                <button type="submit" name="command" value="UNLOCK" class="btn btn-unlock"
                     onclick="return confirm('⚠️ Authorize Level {{ next_level }} promotion?')">
                     🔓 AUTHORIZE LEVEL {{ next_level }}
                 </button>
@@ -332,7 +103,7 @@
             {% else %}
             <div class="unlocked-indicator">
                 <strong>✅ Level {{ next_level }} is AUTHORIZED</strong>
-                <p style="margin-top: 10px; color: #ccc;">
+                <p class="mt-10 muted-ccc">
                     The system may promote to Level {{ next_level }} when accuracy threshold is met.
                 </p>
             </div>
@@ -342,7 +113,7 @@
         <!-- Footer -->
         <footer>
             <p>King's Theorem v53 — Titanium X Protocol Edition</p>
-            <p style="margin-top: 5px; font-size: 0.9em;">
+            <p class="footer-subtext">
                 Formal Verification • Cryptographic Integrity • Human Sovereignty
             </p>
         </footer>

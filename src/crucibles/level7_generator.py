@@ -154,8 +154,9 @@ class Level7ParadoxGenerator:
 
         # Select multiple domains for complexity
         primary_domain = template.domain
-        # nosec B311: test data generation for crucible difficulty, not cryptographic use
-        secondary_domains = random.sample([d for d in SAFE_DOMAINS if d != primary_domain], k=random.randint(2, 4))
+        secondary_domains = random.sample(
+            [d for d in SAFE_DOMAINS if d != primary_domain], k=random.randint(2, 4)  # nosec B311
+        )  # nosec B311: test data generation for crucible difficulty, not cryptographic use
         all_domains = [primary_domain] + secondary_domains
 
         # Construct scenario with temporal conflict

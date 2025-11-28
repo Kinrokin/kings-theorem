@@ -27,6 +27,7 @@ from typing import Any, Dict
 
 from fastapi import FastAPI, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 # Configure logging
@@ -50,6 +51,12 @@ if not TEMPLATES_DIR.exists():
     logger.warning(f"Using local templates directory: {TEMPLATES_DIR}")
 
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
+
+# Mount static files (CSS/JS) under /static
+STATIC_DIR = TEMPLATES_DIR / "static"
+if not STATIC_DIR.exists():
+    STATIC_DIR.mkdir(parents=True, exist_ok=True)
+app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 
 # --- SIGNAL FILE HELPERS ---

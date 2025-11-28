@@ -258,8 +258,8 @@ def decode_attempts(text: str, max_attempts: int = 3) -> List[str]:
         if decoded not in seen and len(decoded) > 0:
             variants.append(decoded)
             seen.add(decoded)
-    except (binascii.Error, ValueError):
-        pass
+    except (binascii.Error, ValueError) as e:
+        logger.debug("Base64 decode attempt failed: %s", e)
 
     # Attempt 2: Hex decoding
     try:
@@ -268,8 +268,8 @@ def decode_attempts(text: str, max_attempts: int = 3) -> List[str]:
             if decoded not in seen and len(decoded) > 0:
                 variants.append(decoded)
                 seen.add(decoded)
-    except (ValueError, UnicodeDecodeError):
-        pass
+    except (ValueError, UnicodeDecodeError) as e:
+        logger.debug("Hex decode attempt failed: %s", e)
 
     # Attempt 3: ROT13 (simple Caesar cipher)
     try:
@@ -279,8 +279,8 @@ def decode_attempts(text: str, max_attempts: int = 3) -> List[str]:
         if decoded not in seen and len(decoded) > 0:
             variants.append(decoded)
             seen.add(decoded)
-    except Exception:
-        pass
+    except Exception as e:
+        logger.debug("ROT13 decode attempt failed: %s", e)
 
     return variants[: max_attempts + 1]  # Cap total variants
 

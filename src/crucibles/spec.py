@@ -6,6 +6,7 @@ Generates training crucibles with difficulty-aware complexity gradients.
 from __future__ import annotations
 
 import random
+import secrets
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -156,8 +157,8 @@ class CrucibleGenerator:
             List of domain strings
         """
         pool = CORE_DOMAINS
-        count = random.randint(diff.min_domains, diff.max_domains)
-        return random.sample(pool, min(len(pool), count))
+        count = random.randint(diff.min_domains, diff.max_domains)  # nosec B311: non-crypto dataset sizing
+        return random.sample(pool, min(len(pool), count))  # nosec B311: non-crypto sampling for test data
 
     def generate_paradoxes(self, count: int, domains: List[str]) -> List[str]:
         """Generate contradictions across domains.
@@ -172,9 +173,9 @@ class CrucibleGenerator:
         paradoxes = []
         axes = ["legal_conflict", "ethical_conflict", "temporal_conflict"]
         for i in range(count):
-            axis = random.choice(axes)
-            domain_a = random.choice(domains)
-            domain_b = random.choice(domains)
+            axis = random.choice(axes)  # nosec B311: non-crypto selection for dataset generation
+            domain_a = random.choice(domains)  # nosec B311
+            domain_b = random.choice(domains)  # nosec B311
             paradoxes.append(f"{axis} between {domain_a} and {domain_b}")
         return paradoxes
 
@@ -189,7 +190,7 @@ class CrucibleGenerator:
         """
         phases = ["immediate", "short_term", "long_term", "multi_generational"]
         count = min(diff.paradox_count // 4 + 1, len(phases))
-        return random.sample(phases, count)
+        return random.sample(phases, count)  # nosec B311: non-crypto sampling for test data
 
     def build_base_prompt(self, domains: List[str], paradoxes: List[str], phases: List[str]) -> str:
         """Construct the crucible prompt text.
@@ -242,7 +243,7 @@ class CrucibleGenerator:
         expected = "HONEST_ABSTAIN" if diff.allow_abstain else "CORRECT_AND_ALLOW"
 
         return CrucibleSpec(
-            id=crucible_id or f"crucible-d{difficulty}-{random.randint(10000, 99999)}",
+            id=crucible_id or f"crucible-d{difficulty}-{secrets.token_hex(4)}",
             difficulty=difficulty,
             domains=domains,
             paradox_count=diff.paradox_count,
