@@ -1,0 +1,4 @@
+# file: C:\KingsTheorem_v53\kings-theorem-v53\audit\full_system_audit.py
+# hypothesis_version: 6.148.2
+
+[0.0, 0.4, 0.5, 1000, 'AUDIT_ETHICS_001', 'AUDIT_FINANCE_001', 'Finance_PumpAndDump', 'HALT', 'HALT_TRACE', 'RISK < 5%', 'SACRIFICE_MINORITY', 'StudentKernelV42', 'TIER_5_HALT', 'TriGovernor', 'VETOED', '[IMPORT-FAIL] %s: %s', '[OK] Imported %s', '[OK] numpy available', '__main__', 'aggregate', 'constraint', 'data', 'decision', 'domain', 'ethics', 'expected_min_risk', 'finance', 'graph', 'integrity_violation', 'market_manipulation', 'metadata', 'must_halt', 'name', 'problem_id', 'proposed_actions', 'replay_alert', 'replay_confidence', 'risk', 'spectral_alert', 'src.core.kt_engine', 'status', 'tags', 'task', 'trace_valid', 'type', 'unethical', 'utility', 'validate_solution', 'warrant']

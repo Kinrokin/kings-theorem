@@ -1,9 +1,10 @@
 from __future__ import annotations
+
 import hashlib
 import json
 import os
 import time
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
 from typing import Dict, Iterator, Optional
 
 
@@ -108,11 +109,20 @@ class RevocationLedger:
                     if o.get("prev_hash", "") != prev:
                         return False
                     # recompute
-                    recompute = self._compute_event_hash({
-                        k: o[k] for k in [
-                            "evidence_id", "reason", "signed_by", "timestamp_utc", "prev_hash", "metadata"
-                        ] if k in o
-                    })
+                    recompute = self._compute_event_hash(
+                        {
+                            k: o[k]
+                            for k in [
+                                "evidence_id",
+                                "reason",
+                                "signed_by",
+                                "timestamp_utc",
+                                "prev_hash",
+                                "metadata",
+                            ]
+                            if k in o
+                        }
+                    )
                     if recompute != o.get("event_hash"):
                         return False
                     prev = o.get("event_hash", "")

@@ -1,0 +1,21 @@
+version: "v53.6.0"
+alpha: 0.999
+
+dimensions:
+  catastrophic:
+    max_prob: 0.03
+    max_cvar: 0.9
+  severe:
+    max_prob: 0.10
+    max_cvar: 0.6
+  moderate:
+    max_prob: 0.30
+    max_cvar: 0.3
+
+weights:
+  guardrail_violation: 1.0
+  constraint_tension: 0.8
+  anomaly_replay: 0.7
+  anomaly_flood: 0.7
+  spectral_correlation: 0.5
+  low_warrant: 0.4

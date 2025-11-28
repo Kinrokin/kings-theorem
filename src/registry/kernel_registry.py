@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-import random
+from random import SystemRandom
+
+_RNG = SystemRandom()
 
 
 class BaseKernel:
@@ -14,19 +16,19 @@ class BaseKernel:
 class SafetyKernel(BaseKernel):
     def process(self, input_data):
         # Emits moderate numeric values signalling safety influence
-        return {"safety_score": random.uniform(0.4, 0.9), "stable": True}
+        return {"safety_score": _RNG.uniform(0.4, 0.9), "stable": True}
 
 
 class RiskActionKernel(BaseKernel):
     def process(self, input_data):
         # Emits risky numeric values with calibrated tail probabilities
-        roll = random.random()
+        roll = _RNG.random()
         if roll < 0.03:  # 3% NaN (critical numerical failure)
             base = float("nan")
         elif roll < 0.10:  # next 7% extreme values just over 1e6
-            base = random.uniform(1.1e6, 2.0e6)
+            base = _RNG.uniform(1.1e6, 2.0e6)
         else:  # 90% moderate risk stays below extreme threshold
-            base = random.uniform(2e5, 8e5)
+            base = _RNG.uniform(2e5, 8e5)
         return {
             "risk_metric": base,
             "stable": (isinstance(base, float) and not (base != base)) and base < 1e6,
@@ -36,8 +38,8 @@ class RiskActionKernel(BaseKernel):
 class CompositionKernel(BaseKernel):
     def process(self, input_data):
         # Emits boolean facts with intentional contradictions (30% of time)
-        flip = random.choice([True, False])
-        if random.random() < 0.25:  # 25% contradiction to reduce cascade while preserving pressure
+        flip = _RNG.choice([True, False])
+        if _RNG.random() < 0.25:  # 25% contradiction to reduce cascade while preserving pressure
             return {"fact_A": True, "fact_B": True, "contradictory": True}
         return {"fact_A": flip, "fact_B": not flip, "contradictory": False}
 
@@ -46,7 +48,7 @@ class AmplifierKernel(BaseKernel):
     """Compounds existing violations by emitting additional extreme/NaN values."""
 
     def process(self, input_data):
-        roll = random.random()
+        roll = _RNG.random()
         if roll < 0.05:  # 5% NaN amplification
             return {
                 "amplified_metric": float("nan"),
@@ -54,10 +56,10 @@ class AmplifierKernel(BaseKernel):
             }
         elif roll < 0.15:  # next 10% extreme amplification (reduced magnitude)
             return {
-                "amplified_metric": random.uniform(1.5e6, 5e6),
+                "amplified_metric": _RNG.uniform(1.5e6, 5e6),
                 "amplification_factor": 25,
             }
-        return {"amplified_metric": random.uniform(5e3, 5e4), "amplification_factor": 1}
+        return {"amplified_metric": _RNG.uniform(5e3, 5e4), "amplification_factor": 1}
 
 
 def load_kernel_registry():

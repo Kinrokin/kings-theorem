@@ -9,9 +9,13 @@ Ledger record format (expected minimal fields):
 This is intentionally lightweight; future versions may verify hash chain integrity.
 """
 from __future__ import annotations
+
+import json
+import logging
 from pathlib import Path
 from typing import Set
-import json
+
+logger = logging.getLogger(__name__)
 
 
 def load_revocations(ledger_path: Path) -> Set[str]:
@@ -24,7 +28,8 @@ def load_revocations(ledger_path: Path) -> Set[str]:
             continue
         try:
             rec = json.loads(line)
-        except Exception:
+        except Exception as exc:
+            logger.debug("Skipping malformed revocation entry: %s", exc)
             continue
         rid = rec.get("revoked_id") or rec.get("evidence_id") or rec.get("manifest_id")
         if rid:

@@ -1,0 +1,4 @@
+# file: C:\KingsTheorem_v53\kings-theorem-v53\src\llm_interface.py
+# hypothesis_version: 6.148.2
+
+['DEFAULT_MODEL', 'check_connection', 'query_qwen']

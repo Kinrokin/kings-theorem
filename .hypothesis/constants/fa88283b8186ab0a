@@ -1,0 +1,4 @@
+# file: C:\KingsTheorem_v53\kings-theorem-v53\src\governance\arbiter_hardened.py
+# hypothesis_version: 6.148.2
+
+[1.0, 10.0, 30.0, 'BlindedOutput', 'Student', 'Teacher', 'allow', 'approved', 'chosen', 'chosen_output', 'combined_hits', 'composite', 'context', 'decision', 'decisions', 'divergence', 'doubly_blind', 'en', 'epistemic', 'error', 'execution_error', 'failed', 'ledger_hash', 'ledger_stats', 'locale', 'policy_version', 'prompt_hash', 'provenance', 'reason', 'risk', 'sigma_path', 'sigma_student_len', 'sigma_student_sha256', 'sigma_teacher_len', 'sigma_teacher_sha256', 'student', 'student_error', 'student_only', 'student_score', 'student_vet', 'student_vetoed', 'teacher', 'teacher_error', 'teacher_score', 'teacher_vet', 'timeout', 'timestamp', 'total_decisions', 'trinity', 'unknown', 'veto']

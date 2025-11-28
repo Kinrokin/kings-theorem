@@ -56,6 +56,7 @@ class RedactionFilter(logging.Filter):
                         redacted_args.append(a)
                 record.args = tuple(redacted_args)
         except Exception:
+            # nosec B110 - log filter must never raise; failing silently keeps logging operational
             pass
         return True
 

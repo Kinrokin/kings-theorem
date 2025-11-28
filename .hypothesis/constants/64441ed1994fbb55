@@ -1,0 +1,4 @@
+# file: C:\KingsTheorem_v53\kings-theorem-v53\src\algebra\constraint_lattice.py
+# hypothesis_version: 6.148.2
+
+[0.0, 0.3, 0.5, 0.7, 0.8, 0.9, 1.0, 100.0, '(optimize', 'Constraint', 'ConstraintLattice', 'ConstraintType', 'FAILED', 'MAXIMIZE PROFIT', 'RISK=0', 'VETOED', 'ZERO RISK', 'composite', 'constraint', 'domain', 'epistemic', 'ethical', 'expression', 'governance', 'id', 'is_composable', 'join', 'meet', 'operational', 'outcome', 'parse', 'profit_goal', 'proof_obligation', 'prudential', 'raw', 'risk_bounds', 'risk_score', 'safety', 'status', 'strength', 'type', 'verify', 'zero_risk']

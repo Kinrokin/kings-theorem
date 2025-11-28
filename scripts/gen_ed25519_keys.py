@@ -1,15 +1,17 @@
 from __future__ import annotations
+
 from pathlib import Path
 
 try:
-    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
     from cryptography.hazmat.primitives import serialization
-except Exception as e:
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+except Exception:
     raise SystemExit("cryptography is required: pip install cryptography")
 
 
 def main():
     import argparse
+
     ap = argparse.ArgumentParser(description="Generate Ed25519 key pair (PEM) into keys/ directory")
     ap.add_argument("--name", default="ed25519", help="Base filename prefix (default: ed25519)")
     ap.add_argument("--out", default="keys", help="Output directory (default: keys)")

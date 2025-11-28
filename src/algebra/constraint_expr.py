@@ -1,8 +1,10 @@
 # src/algebra/constraint_expr.py
 from __future__ import annotations
-from dataclasses import dataclass
-from typing import Union, List, Set, Dict, Any
+
 import json
+from dataclasses import dataclass
+from typing import Any, Dict, List, Set, Union
+
 
 # Basic AST nodes
 @dataclass(frozen=True)
@@ -15,6 +17,7 @@ class Atom:
     def __str__(self):
         return self.name
 
+
 @dataclass(frozen=True)
 class And:
     parts: tuple
@@ -24,6 +27,7 @@ class And:
 
     def __str__(self):
         return " AND ".join(str(p) for p in self.parts)
+
 
 @dataclass(frozen=True)
 class Or:
@@ -35,6 +39,7 @@ class Or:
     def __str__(self):
         return " OR ".join(str(p) for p in self.parts)
 
+
 @dataclass(frozen=True)
 class Not:
     part: object
@@ -45,13 +50,16 @@ class Not:
     def __str__(self):
         return f"NOT({self.part})"
 
+
 ConstraintExpr = Union[Atom, And, Or, Not]
+
 
 def canonical_serialize(expr: ConstraintExpr) -> str:
     """
     Deterministic JSON serialization for AST -> string.
     """
     return json.dumps(expr.serialize(), sort_keys=True, separators=(",", ":"))
+
 
 def atoms_in(expr: ConstraintExpr) -> Set[str]:
     if isinstance(expr, Atom):
@@ -64,6 +72,7 @@ def atoms_in(expr: ConstraintExpr) -> Set[str]:
             s.update(atoms_in(p))
         return s
     return set()
+
 
 def simple_conflict_check(exprs: List[ConstraintExpr]) -> tuple[bool, str]:
     """
@@ -88,7 +97,7 @@ def simple_conflict_check(exprs: List[ConstraintExpr]) -> tuple[bool, str]:
     if inter:
         return False, f"direct_contradiction:{','.join(sorted(inter))}"
     # domain conflicts heuristic
-    domains = {a.split(":",1)[0] for a in atoms if ":" in a}
+    domains = {a.split(":", 1)[0] for a in atoms if ":" in a}
     if len(domains) > 1 and "DOMAIN" in domains:
         # crude detection; real logic should inspect domains properly
         return False, f"domain_conflict:{','.join(sorted(domains))}"

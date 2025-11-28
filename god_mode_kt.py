@@ -1,17 +1,15 @@
-import os
-import sys
-import time
-import json
-import hashlib
-from pathlib import Path
 import importlib.util
 import logging
+import os
+import sys
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
 # --- CONFIGURATION ---
 PROJECT_NAME = "kings-theorem-kt-v47"
 BASE_DIR = Path(os.getcwd()) / PROJECT_NAME
+
 
 def write_file(path: Path, content: str):
     """Writes content to a file, ensuring parent directories exist."""
@@ -20,41 +18,51 @@ def write_file(path: Path, content: str):
         f.write(content.strip())
     logger.info("[CREATED] %s", path.relative_to(BASE_DIR.parent))
 
+
 def check_dependency(package_name):
     """Checks if a package is installed."""
     spec = importlib.util.find_spec(package_name)
     return spec is not None
 
+
 def genesis():
     logger.info("\n[*] INITIATING KT-v47 GOD MODE PROTOCOL")
     logger.info("[*] TARGET: %s\n", BASE_DIR)
-    
+
     # ==========================================
     # 1. ENVIRONMENT REPAIR KIT
     # ==========================================
-    
+
     # requirements.txt
-    write_file(BASE_DIR / "requirements.txt", """
+    write_file(
+        BASE_DIR / "requirements.txt",
+        """
 numpy>=1.26.4
 pymoo>=0.6.0
 scipy>=1.13.1
 scikit-learn>=1.5.0
 metric-temporal-logic>=0.4.0
 pydantic>=2.7.1
-""")
+""",
+    )
 
     # INSTALL_DEPENDENCIES.bat (Windows)
-    write_file(BASE_DIR / "INSTALL_DEPENDENCIES.bat", """
+    write_file(
+        BASE_DIR / "INSTALL_DEPENDENCIES.bat",
+        """
 @echo off
 echo [*] INSTALLING KT-v47 DEPENDENCIES...
 pip install -r requirements.txt
 echo.
 echo [*] INSTALLATION COMPLETE. YOU MAY NOW RUN THE AUDIT.
 pause
-""")
+""",
+    )
 
     # pyproject.toml (Poetry)
-    write_file(BASE_DIR / "pyproject.toml", """
+    write_file(
+        BASE_DIR / "pyproject.toml",
+        """
 [tool.poetry]
 name = "kings-theorem-kt-v47"
 version = "47.0.0"
@@ -74,13 +82,16 @@ metric-temporal-logic = "^0.4.0"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
-""")
+""",
+    )
 
     # ==========================================
     # 2. THE ROOT & CONFIG
     # ==========================================
 
-    write_file(BASE_DIR / "README.md", """
+    write_file(
+        BASE_DIR / "README.md",
+        """
 # King's Theorem (KT-v47)
 ## The Gold Standard of Anti-Fragility
 
@@ -88,10 +99,13 @@ build-backend = "poetry.core.masonry.api"
 1. Run `INSTALL_DEPENDENCIES.bat` to ensure the environment is fertile.
 2. Run `python src/main.py` to boot the Mastermind.
 3. Run `python audit/full_system_audit.py` to verify system integrity.
-""")
+""",
+    )
 
     # src/config.py (The Constitution)
-    write_file(BASE_DIR / "src/config.py", """
+    write_file(
+        BASE_DIR / "src/config.py",
+        """
 \"\"\"
 AID: /src/config.py
 Proof ID: CONFIG-001
@@ -113,7 +127,8 @@ DEONTOLOGICAL_RULES = {
     "RULE_PROTECT_MINORITY": True,
     "RULE_NO_MONSTROUS_OPTIMA": True
 }
-""")
+""",
+    )
 
     # ==========================================
     # 3. PRIMITIVES (The Atoms)
@@ -122,7 +137,9 @@ DEONTOLOGICAL_RULES = {
     write_file(BASE_DIR / "src/primitives/__init__.py", "")
 
     # src/primitives/exceptions.py (The Signal)
-    write_file(BASE_DIR / "src/primitives/exceptions.py", """
+    write_file(
+        BASE_DIR / "src/primitives/exceptions.py",
+        """
 \"\"\"
 AID: /src/primitives/exceptions.py
 Proof ID: PRF-SIT-001
@@ -136,10 +153,13 @@ class StandardizedInfeasibilityToken(Exception):
     Used by the Student Kernel to signal that the 'Gold Standard' cannot be met.
     \"\"\"
     pass
-""")
+""",
+    )
 
     # src/primitives/risk_math.py (The Math)
-    write_file(BASE_DIR / "src/primitives/risk_math.py", """
+    write_file(
+        BASE_DIR / "src/primitives/risk_math.py",
+        """
 \"\"\"
 AID: /src/primitives/risk_math.py
 Proof ID: PRF-RISK-001
@@ -168,14 +188,17 @@ def calculate_intracluster_correlation(data: np.ndarray) -> float:
     variance = np.var(data)
     if variance == 0:
         return 1.0 # Total uniformity = Maximum correlation
-    
+
     # Inverse relationship for the proxy
     rho = 1.0 / (1.0 + variance)
     return min(max(rho, 0.0), 1.0)
-""")
+""",
+    )
 
     # src/primitives/dual_ledger.py (The Memory)
-    write_file(BASE_DIR / "src/primitives/dual_ledger.py", '''
+    write_file(
+        BASE_DIR / "src/primitives/dual_ledger.py",
+        '''
 """
 AID: /src/primitives/dual_ledger.py
 Proof ID: PRF-AUDIT-001
@@ -195,7 +218,7 @@ logger = logging.getLogger(__name__)
 class DualLedger:
     def __init__(self):
         self.chain = []
-    
+
     def log(self, actor: str, action: str, outcome: Any):
         timestamp = time.time()
         entry = {
@@ -207,9 +230,9 @@ class DualLedger:
         # Create cryptographic seal
         entry_str = json.dumps(entry, sort_keys=True)
         entry_hash = hashlib.sha256(entry_str.encode('utf-8')).hexdigest()
-        
+
         prev_hash = self.chain[-1]['hash'] if self.chain else "000000"
-        
+
         block = {
             "entry": entry,
             "hash": entry_hash,
@@ -218,7 +241,8 @@ class DualLedger:
         self.chain.append(block)
         logger.info(f"[LEDGER] {actor.ljust(10)} | {action.ljust(15)} | Hash: {entry_hash[:8]}...")
         return entry_hash
-''')
+''',
+    )
 
     # ==========================================
     # 4. PROTOCOLS (The Scar Tissue)
@@ -227,7 +251,9 @@ class DualLedger:
     write_file(BASE_DIR / "src/protocols/__init__.py", "")
 
     # src/protocols/apf_v32.py (Paradox Fusion)
-    write_file(BASE_DIR / "src/protocols/apf_v32.py", """
+    write_file(
+        BASE_DIR / "src/protocols/apf_v32.py",
+        """
 \"\"\"
 AID: /src/protocols/apf_v32.py
 Proof ID: PRF-APF-32
@@ -247,10 +273,13 @@ def fuse_paradox(state_a: bool, state_b: bool) -> APFLogicValue:
     if not state_a and not state_b: return APFLogicValue.FALSE
     if state_a != state_b: return APFLogicValue.BOTH
     return APFLogicValue.NEITHER
-""")
+""",
+    )
 
     # src/protocols/iads_v10.py (Truth Maintenance - The Missing Link)
-    write_file(BASE_DIR / "src/protocols/iads_v10.py", """
+    write_file(
+        BASE_DIR / "src/protocols/iads_v10.py",
+        """
 \"\"\"
 AID: /src/protocols/iads_v10.py
 Proof ID: PRF-IADS-010
@@ -264,10 +293,13 @@ def detect_asymmetry(source_a: float, source_b: float, tolerance: float = 0.05) 
     \"\"\"
     delta = abs(source_a - source_b)
     return delta > tolerance
-""")
+""",
+    )
 
     # src/protocols/pfm_v1.py (Fatigue)
-    write_file(BASE_DIR / "src/protocols/pfm_v1.py", """
+    write_file(
+        BASE_DIR / "src/protocols/pfm_v1.py",
+        """
 \"\"\"
 AID: /src/protocols/pfm_v1.py
 Proof ID: PRF-PFM-001
@@ -281,10 +313,13 @@ def check_fatigue_risk(operator_data: np.ndarray) -> str:
     if rho > 0.6:
         return "REJECT_QUORUM (High Correlation)"
     return "ACCEPT_QUORUM"
-""")
+""",
+    )
 
     # src/protocols/pog_v39.py (Generative)
-    write_file(BASE_DIR / "src/protocols/pog_v39.py", """
+    write_file(
+        BASE_DIR / "src/protocols/pog_v39.py",
+        """
 \"\"\"
 AID: /src/protocols/pog_v39.py
 Proof ID: PRF-POG-001
@@ -300,10 +335,13 @@ def scan_for_arbitrage(logic_state: APFLogicValue):
             "priority": "HIGH"
         }
     return None
-""")
+""",
+    )
 
     # src/protocols/dcs_v1.py (Consensus)
-    write_file(BASE_DIR / "src/protocols/dcs_v1.py", """
+    write_file(
+        BASE_DIR / "src/protocols/dcs_v1.py",
+        """
 \"\"\"
 AID: /src/protocols/dcs_v1.py
 Proof ID: PRF-DCS-001
@@ -323,7 +361,8 @@ class ConsensusEngine:
         if check_fatigue_risk(matrix) == "REJECT_QUORUM (High Correlation)":
              return "CONSENSUS_REJECTED_FATIGUE"
         return "CONSENSUS_VALID"
-""")
+""",
+    )
 
     # ==========================================
     # 5. GOVERNANCE (The Law)
@@ -332,7 +371,9 @@ class ConsensusEngine:
     write_file(BASE_DIR / "src/governance/__init__.py", "")
 
     # src/governance/guardrail_dg_v1.py
-    write_file(BASE_DIR / "src/governance/guardrail_dg_v1.py", '''
+    write_file(
+        BASE_DIR / "src/governance/guardrail_dg_v1.py",
+        '''
 """
 AID: /src/governance/guardrail_dg_v1.py
 Proof ID: PRF-DG-002-REGEX
@@ -375,9 +416,9 @@ class DeontologicalGuardrail:
         Returns: (Passed: bool, Reason: str)
         """
         if not text: return (False, "Empty Output")
-        
+
         text_lower = text.lower()
-        
+
         for pattern in self.forbidden_patterns:
             m = re.search(pattern, text_lower)
             if m:
@@ -409,7 +450,7 @@ class DeontologicalGuardrail:
             reason = f"Axiom 6 Violation: Fuzzy-detected concept '{best_kw}' matched '{matched_sub}' (score={best_score:.2f})"
             logger.warning("[GUARDRAIL] VETO: %s", reason)
             return (False, reason)
-                
+
         return (True, "Clean")
 
     def validate(self, solution: dict) -> bool:
@@ -438,10 +479,13 @@ class DeontologicalGuardrail:
                         return True
         return False
 
-''')
+''',
+    )
 
     # src/governance/verification.py
-    write_file(BASE_DIR / "src/governance/verification.py", """
+    write_file(
+        BASE_DIR / "src/governance/verification.py",
+        """
 \"\"\"
 AID: /src/governance/verification.py
 Proof ID: PRF-LTL-010
@@ -457,13 +501,16 @@ class RollingVerifier:
         self.phi = mtl.parse('G(Request -> F(Grant))') if mtl else None
     def verify_trace(self, trace: list) -> bool:
         return True # Mock for scaffolding
-""")
+""",
+    )
 
     # ==========================================
     # 6. KERNELS (The Engines)
     # ==========================================
     # Ensure generated environments include the logging helper (live version)
-    write_file(BASE_DIR / "src/logging_config.py", '''
+    write_file(
+        BASE_DIR / "src/logging_config.py",
+        '''
 import logging
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
@@ -510,12 +557,15 @@ def setup_logging(log_file: str = None, level: int = logging.INFO):
     root.addHandler(ch)
 
     root.setLevel(level)
-''')
+''',
+    )
 
     write_file(BASE_DIR / "src/kernels/__init__.py", "")
 
     # Student (Thesis) - evolved v42
-    write_file(BASE_DIR / "src/kernels/student_v42.py", '''
+    write_file(
+        BASE_DIR / "src/kernels/student_v42.py",
+        '''
 """Student kernel v42
 
 Improvements applied in this refactor:
@@ -664,7 +714,7 @@ class StudentKernelV42:
                     )
                 # else, simple backoff
                 time.sleep(0.5 * attempt)
-            
+
 
     # --- Utilities ---
     @staticmethod
@@ -799,10 +849,13 @@ class StudentKernelV42:
                         )
                     )
                 time.sleep(0.5 * attempt)
-''')
+''',
+    )
 
     # Teacher (Antithesis)
-    write_file(BASE_DIR / "src/kernels/teacher_v45.py", """
+    write_file(
+        BASE_DIR / "src/kernels/teacher_v45.py",
+        """
 \"\"\"
 AID: /src/kernels/teacher_v45.py
 Proof ID: PRF-MOPFO-001
@@ -814,31 +867,34 @@ class TeacherKernelV45:
     def mopfo_pipeline(self, problem: Dict[str, Any]) -> Dict[str, Any]:
         constraints = problem.get("module3_planning", {}).get("constraints", {})
         e_peak = constraints.get("E_peak_threshold", 100)
-        
+
         # Heuristic Slack: Allows 10% buffer (Down to 45)
         if e_peak >= 45:
             return {
-                "status": "SALVAGEABLE", 
+                "status": "SALVAGEABLE",
                 "solution": "Heuristic Path B (Compromise)",
                 "rationale": f"Constraint {e_peak} within 10% slack."
             }
         return {"status": "UNSALVAGEABLE", "reason": "Beyond heuristic slack."}
-""")
+""",
+    )
 
     # Arbiter (Synthesis) - live v47
-    write_file(BASE_DIR / "src/kernels/arbiter_v47.py", '''
+    write_file(
+        BASE_DIR / "src/kernels/arbiter_v47.py",
+        '''
 """
 AID: /src/kernels/arbiter_v47.py
 Proof ID: PRF-ARB-008A-LIVE
 """
-from src.primitives.dual_ledger import DualLedger
-from src.governance.guardrail_dg_v1 import DeontologicalGuardrail
+from src.primitives.merkle_ledger import MerkleLedger
+from src.governance.nemo_guard import DeontologicalGuardrail
 from src.kernels.student_v42 import StudentKernelV42
 from src.kernels.teacher_v45 import TeacherKernelV45
 
 
 class ArbiterKernelV47:
-    def __init__(self, guardrail: DeontologicalGuardrail, ledger: DualLedger, student: StudentKernelV42, teacher: TeacherKernelV45):
+    def __init__(self, guardrail: DeontologicalGuardrail, ledger: MerkleLedger, student: StudentKernelV42, teacher: TeacherKernelV45):
         self.guardrail = guardrail
         self.ledger = ledger
         self.student = student
@@ -846,10 +902,10 @@ class ArbiterKernelV47:
 
     def adjudicate(self, problem):
         self.ledger.log("Arbiter", "Start", f"Adjudicating: {problem.get('task', 'Unknown')}")
-        
+
         # 1. Run the Student (Real LLM Call via StudentKernelV42)
         student_out = self.student.staged_solve_pipeline(problem)
-        
+
         # 2. Evaluate Result
         final = {}
         if student_out["status"] == "PASS (Student)":
@@ -865,26 +921,29 @@ class ArbiterKernelV47:
                 final = {"outcome": "VETOED", "reason": reason, "data": student_out}
             else:
                 final = {"outcome": "SOLVED", "source": "Student", "data": student_out}
-                 
+
         elif student_out["status"] == "SIT":
             # Failover to Teacher if Student fails/timeouts
             teacher_out = self.teacher.mopfo_pipeline(problem)
             final = {"outcome": "SOLVED", "source": "Teacher (Heuristic)", "data": teacher_out}
-            
+
         else:
             final = {"outcome": "FAILED", "source": "System Exhaustion", "data": None}
-        
+
         self.ledger.log("Arbiter", "Ruling", final["outcome"])
         return final
 
-''')
+''',
+    )
 
     # ==========================================
     # 7. ENTRYPOINT & AUDIT
     # ==========================================
 
     # Main (master controller - live)
-    write_file(BASE_DIR / "src/main.py", '''
+    write_file(
+        BASE_DIR / "src/main.py",
+        '''
 """
 AID: /src/main.py
 Proof ID: PRF-ARB-008A
@@ -904,35 +963,38 @@ from src.primitives.dual_ledger import DualLedger
 from src.kernels.student_v42 import StudentKernelV42
 from src.kernels.teacher_v45 import TeacherKernelV45
 from src.kernels.arbiter_v47 import ArbiterKernelV47
-from src.governance.guardrail_dg_v1 import DeontologicalGuardrail
+from src.governance.nemo_guard import DeontologicalGuardrail
 
 logger = logging.getLogger(__name__)
 
 def run_system():
     logger.info("[BOOT] Initializing KT-v47 Engine...")
-    ledger = DualLedger()
+    ledger = MerkleLedger()
     guard = DeontologicalGuardrail(config.DEONTOLOGICAL_RULES)
     student = StudentKernelV42()
     teacher = TeacherKernelV45()
     arbiter = ArbiterKernelV47(guard, ledger, student, teacher)
     logger.info("[BOOT] System Sealed and Ready.")
-    
+
     test_problem = {
         "task": "Whistleblower",
         "proposed_actions": [{"type": "SACRIFICE_MINORITY", "utility": 999}],
         "module3_planning": {"constraints": {"E_peak_threshold": 45}}
     }
-    
+
     result = arbiter.adjudicate(test_problem)
     logger.info("\\n[FINAL SYSTEM RULING] Outcome: %s", result['outcome'])
 
 if __name__ == "__main__":
     run_system()
 
-''')
+''',
+    )
 
     # Audit (Robust)
-    write_file(BASE_DIR / "audit/full_system_audit.py", '''
+    write_file(
+        BASE_DIR / "audit/full_system_audit.py",
+        '''
 """
 AID: /audit/full_system_audit.py
 Proof ID: PRF-K2-FORGE-001
@@ -966,12 +1028,12 @@ ARTIFACTS = [
 
 def run_audit():
     logger.info("--- K2-FORGE SYSTEM AUDIT ---")
-    
+
     if not NUMPY_OK:
         logger.critical("[CRITICAL WARNING] 'numpy' is missing.")
         logger.info("   > PLEASE RUN 'INSTALL_DEPENDENCIES.bat' IN THE PROJECT FOLDER.")
         logger.info("   > Audit entering degraded mode (Static Analysis Only).")
-    
+
     errors = 0
     for art in ARTIFACTS:
         p = PROJECT_ROOT / art
@@ -984,7 +1046,7 @@ def run_audit():
         else:
             logger.error("[FAIL] %s (Missing File)", art)
             errors += 1
-            
+
     if errors == 0:
         logger.info("\n[SUCCESS] Static Audit Passed.")
     else:
@@ -992,23 +1054,25 @@ def run_audit():
 
 if __name__ == "__main__":
     run_audit()
-''')
+''',
+    )
 
     logger.info("[*] GENESIS COMPLETE at %s", BASE_DIR)
     logger.info("[*] IMPORTANT: Check for 'INSTALL_DEPENDENCIES.bat' if errors occur.")
-    
+
     # Check dependencies immediately
     missing_deps = False
     for dep in ["numpy", "pymoo"]:
         if not check_dependency(dep):
             missing_deps = True
-            
+
     if missing_deps:
         logger.critical("\n[!] CRITICAL: SYSTEM DEPENDENCIES MISSING.")
         logger.critical("[!] Run '%s\\INSTALL_DEPENDENCIES.bat' to fix.", BASE_DIR)
     else:
         logger.info("[*] Environment looks healthy. Auto-running audit...")
         os.system(f"{sys.executable} {BASE_DIR}/audit/full_system_audit.py")
+
 
 if __name__ == "__main__":
     genesis()

@@ -1,6 +1,5 @@
 """Lightweight in-memory metrics for local dev and testing."""
 from typing import Dict
-import time
 
 _counters: Dict[str, int] = {}
 _latencies: Dict[str, list] = {}
@@ -20,8 +19,8 @@ def export_metrics() -> str:
         parts.append(f"{k} {v}")
     for path, vals in _latencies.items():
         if vals:
-            parts.append(f"latency_count{{path=\"{path}\"}} {len(vals)}")
-            parts.append(f"latency_avg{{path=\"{path}\"}} {sum(vals)/len(vals):.6f}")
+            parts.append(f'latency_count{{path="{path}"}} {len(vals)}')
+            parts.append(f'latency_avg{{path="{path}"}} {sum(vals)/len(vals):.6f}')
     return "\n".join(parts) + "\n"
 
 

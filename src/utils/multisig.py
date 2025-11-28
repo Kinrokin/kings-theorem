@@ -79,7 +79,9 @@ def verify_multisig(
 
         try:
             is_valid = verify_signature(
-                pub_path, data_to_verify.encode() if isinstance(data_to_verify, str) else data_to_verify, signature
+                pub_path,
+                data_to_verify.encode() if isinstance(data_to_verify, str) else data_to_verify,
+                signature,
             )
         except Exception as e:
             raise InvalidSignatureError(f"Verification failed for key {key_id}: {e}")

@@ -1,10 +1,12 @@
 # src/proofs/proof_lang.py
 from __future__ import annotations
+
+import logging
+import uuid
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Set, Dict, List, Optional
-import uuid
-import logging
+from typing import Dict, List, Set
+
 from src.metrics.metrics import record_proof_check
 
 logger = logging.getLogger("kt.proofs")
@@ -53,7 +55,12 @@ class ProofChecker:
       - verifies that claimed satisfactions map to actual checks (requires external constraint verifier)
     """
 
-    def __init__(self, constraint_verifier=None, max_proof_depth: int = 20, allow_self_reference: bool = False):
+    def __init__(
+        self,
+        constraint_verifier=None,
+        max_proof_depth: int = 20,
+        allow_self_reference: bool = False,
+    ):
         # constraint_verifier: callable(constraint_ref)->bool
         self.constraint_verifier = constraint_verifier
         self.max_proof_depth = max_proof_depth
@@ -62,7 +69,7 @@ class ProofChecker:
     def check_proof(self, proof: ProofObject) -> ProofStatus:
         # structural checks
         step_map = {s.step_id: s for s in proof.steps}
-        
+
         # 1) verify premises exist
         for s in proof.steps:
             for pid in s.premises:
@@ -71,18 +78,18 @@ class ProofChecker:
                     try:
                         record_proof_check(False)
                     except Exception:
-                        pass
+                        logger.exception("Failed to record proof check for missing premise")
                     return ProofStatus.REFUTED
-        
+
         # 2) detect cycles
         if self._has_cycle(step_map):
             logger.debug("Cycle detected in proof %s", proof.proof_id)
             try:
                 record_proof_check(False)
             except Exception:
-                pass
+                logger.exception("Failed to record proof check for cycle detection")
             return ProofStatus.CONTRADICTORY
-        
+
         # 3) detect self-endorsement (proof citing its own conclusion)
         if not self.allow_self_reference:
             if self._has_self_endorsement(proof, step_map):
@@ -90,9 +97,9 @@ class ProofChecker:
                 try:
                     record_proof_check(False)
                 except Exception:
-                    pass
+                    logger.exception("Failed to record proof check for self-endorsement")
                 return ProofStatus.CONTRADICTORY
-        
+
         # 4) enforce proof depth limits
         max_depth = self._compute_max_depth(step_map)
         if max_depth > self.max_proof_depth:
@@ -100,9 +107,9 @@ class ProofChecker:
             try:
                 record_proof_check(False)
             except Exception:
-                pass
+                logger.exception("Failed to record proof check for depth violation")
             return ProofStatus.REFUTED
-        
+
         # 5) check claimed invariants
         for cref in proof.required_invariants:
             valid = True
@@ -114,17 +121,17 @@ class ProofChecker:
                 try:
                     record_proof_check(False)
                 except Exception:
-                    pass
+                    logger.exception("Failed to record proof check for invariant violation")
                 return ProofStatus.REFUTED
             if not claimed:
                 # pending does not count as success/failure
                 return ProofStatus.PENDING
-        
+
         # If we get here, mark PROVEN
         try:
             record_proof_check(True)
         except Exception:
-            pass
+            logger.exception("Failed to record successful proof check")
         return ProofStatus.PROVEN
 
     def _has_cycle(self, step_map: Dict[str, ProofStep]) -> bool:
@@ -149,7 +156,7 @@ class ProofChecker:
             if dfs(s):
                 return True
         return False
-    
+
     def _has_self_endorsement(self, proof: ProofObject, step_map: Dict[str, ProofStep]) -> bool:
         """
         Detect self-endorsement: a proof step that cites the proof's main proposition
@@ -164,33 +171,35 @@ class ProofChecker:
                     if step.step_id in other_step.premises and other_step.step_id != step.step_id:
                         # Check if the step has proper derivation (non-trivial premises)
                         if not step.premises or all(p == step.step_id for p in step.premises):
-                            logger.debug(f"Self-endorsement: step {step.step_id} claims '{proof.proposition}' without proper derivation")
+                            logger.debug(
+                                f"Self-endorsement: step {step.step_id} claims '{proof.proposition}' without proper derivation"
+                            )
                             return True
         return False
-    
+
     def _compute_max_depth(self, step_map: Dict[str, ProofStep]) -> int:
         """
         Compute maximum depth of proof derivation tree.
         Depth = longest path from any leaf (no premises) to any step.
         """
         memo = {}
-        
+
         def depth(step_id: str) -> int:
             if step_id in memo:
                 return memo[step_id]
             if step_id not in step_map:
                 return 0  # Assumption (leaf)
-            
+
             step = step_map[step_id]
             if not step.premises:
                 memo[step_id] = 1
                 return 1
-            
+
             max_premise_depth = max((depth(p) for p in step.premises), default=0)
             memo[step_id] = max_premise_depth + 1
             return memo[step_id]
-        
+
         if not step_map:
             return 0
-        
+
         return max(depth(sid) for sid in step_map)

@@ -1,6 +1,4 @@
-import pytest
-
-from src.governance.guardrail_dg_v1 import DeontologicalGuardrail
+from src.governance.nemo_guard import DeontologicalGuardrail
 from src.kernels.student_v42 import StudentKernelV42
 
 

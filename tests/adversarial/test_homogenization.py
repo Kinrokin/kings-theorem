@@ -1,13 +1,13 @@
 """
 Test entropy monitoring and homogenization detection.
 """
-import pytest
 
 
 def test_entropy_high_diversity():
     """Test that diverse outputs have high entropy."""
-    from src.kernels.entropy_monitor import EntropyMonitor
     import numpy as np
+
+    from src.kernels.entropy_monitor import EntropyMonitor
 
     monitor = EntropyMonitor(window_size=100, entropy_threshold=0.3, num_bins=10)
 
@@ -75,8 +75,9 @@ def test_entropy_flags():
 
 def test_entropy_multiple_kernels():
     """Test monitoring multiple kernels independently."""
-    from src.kernels.entropy_monitor import EntropyMonitor
     import numpy as np
+
+    from src.kernels.entropy_monitor import EntropyMonitor
 
     monitor = EntropyMonitor(window_size=100, entropy_threshold=0.3)
 

@@ -1,0 +1,46 @@
+project_name: "kt-autonomous-v1-safe"
+base_dir: "data/autonomous_runs"
+
+# Curriculum levels
+start_level: 1        # D1
+max_level: 7          # D7
+
+# Global loop limits
+max_epochs: 50        # Hard cap on epochs
+require_human_approval: true
+
+generation:
+  count_per_epoch: 100      # crucibles per epoch per level
+  seed: 42                  # reproducibility seed
+
+ignition:
+  teacher_model: "gpt-4o"
+  concurrency: 10
+  input_pattern: "kt_crucibles_d{level}.jsonl"
+  output_filename: "raw_traces.jsonl"
+
+filtering:
+  quality_threshold: 7
+  output_filename: "clean_traces.jsonl"
+
+refinery:
+  output_subdir: "training_data"
+  format: "both"            # "sft", "dpo", or "both"
+  sft_pattern: "sft_*.jsonl"
+  dpo_filename: "dpo_pairs.jsonl"
+
+training:
+  # These configs already exist in your stack
+  sft_config: "config/sft_config.yaml"
+  dpo_config: "config/dpo_config.yaml"
+  student_model_dir: "models/kt-student-current"
+
+evaluation:
+  # You can implement eval_curriculum.py however you like
+  script: "scripts/eval_curriculum.py"
+  teacher_model: "gpt-4o"
+  default_metric: "accuracy"
+
+logging:
+  # Optional: you can tail these later for dashboards
+  summary_filename: "epoch_summary.json"

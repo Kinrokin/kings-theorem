@@ -1,0 +1,4 @@
+# file: C:\KingsTheorem_v53\kings-theorem-v53\src\manifest\signature.py
+# hypothesis_version: 6.148.2
+
+[',', ':', 'content_hash', 'ed25519', 'ed25519_verify_fail', 'ed25519_verify_ok', 'hmac', 'hmac_verify_fail', 'hmac_verify_ok', 'no_pubkey_provided', 'signature', 'signed_by', 'utf-8']

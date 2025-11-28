@@ -1,15 +1,17 @@
 # src/manifest/cli.py
 from __future__ import annotations
+
 import argparse
-import sys
 import json
-import os
-from typing import Optional
-from src.manifest.signature import sign_manifest, verify_manifest, CRYPTO_ED_AVAILABLE
+import sys
+
+from src.manifest.signature import sign_manifest, verify_manifest
+
 
 def load_bytes(path: str) -> bytes:
     with open(path, "rb") as f:
         return f.read()
+
 
 def cmd_sign(args):
     manifest = json.load(open(args.input, "r", encoding="utf-8"))
@@ -20,10 +22,14 @@ def cmd_sign(args):
         secret = args.hmac_secret.encode("utf-8")
         signed = sign_manifest(manifest, hmac_secret=secret)
     else:
-        print("Error: provide --privkey <path> (ed25519 PEM) or --hmac-secret <secret>", file=sys.stderr)
+        print(
+            "Error: provide --privkey <path> (ed25519 PEM) or --hmac-secret <secret>",
+            file=sys.stderr,
+        )
         sys.exit(2)
     json.dump(signed, open(args.output, "w", encoding="utf-8"), indent=2, ensure_ascii=False)
     print(f"Wrote signed manifest to {args.output}")
+
 
 def cmd_verify(args):
     manifest = json.load(open(args.input, "r", encoding="utf-8"))
@@ -34,7 +40,10 @@ def cmd_verify(args):
         secret = args.hmac_secret.encode("utf-8")
         ok, reason = verify_manifest(manifest, hmac_secret=secret)
     else:
-        print("Error: provide --pubkey <path> (ed25519 PEM) or --hmac-secret <secret>", file=sys.stderr)
+        print(
+            "Error: provide --pubkey <path> (ed25519 PEM) or --hmac-secret <secret>",
+            file=sys.stderr,
+        )
         sys.exit(2)
     if ok:
         print("OK:", reason)
@@ -42,6 +51,7 @@ def cmd_verify(args):
     else:
         print("FAIL:", reason)
         return 3
+
 
 def build_parser():
     p = argparse.ArgumentParser("kt-manifest")
@@ -60,6 +70,7 @@ def build_parser():
     sver.set_defaults(func=cmd_verify)
     return p
 
+
 def main(argv=None):
     parser = build_parser()
     args = parser.parse_args(argv)
@@ -67,6 +78,7 @@ def main(argv=None):
         parser.print_help()
         return 1
     return args.func(args)
+
 
 if __name__ == "__main__":
     sys.exit(main())

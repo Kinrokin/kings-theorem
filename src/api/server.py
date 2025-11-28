@@ -1,4 +1,5 @@
-﻿import os
+import logging
+import os
 from pathlib import Path
 
 import yaml
@@ -6,19 +7,16 @@ from fastapi import FastAPI, Header, HTTPException, Request, Response
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from pydantic import BaseModel
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
-from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
-
-from src.metrics.metrics import (
-    record_manifest_verification,
-    record_proof_check,
-    record_kernel_attestation,
-)
 
 from src.ledger.integrity_ledger import IntegrityLedger, LedgerError
+from src.metrics.metrics import record_proof_check
+
+logger = logging.getLogger(__name__)
 
 
 def load_config():
@@ -39,7 +37,11 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 templates = Jinja2Templates(directory=str(os.path.join(os.path.dirname(__file__), "templates")))
-app.mount("/static", StaticFiles(directory=str(os.path.join(os.path.dirname(__file__), "static"))), name="static")
+app.mount(
+    "/static",
+    StaticFiles(directory=str(os.path.join(os.path.dirname(__file__), "static"))),
+    name="static",
+)
 
 ledger = IntegrityLedger(conf=conf)
 
@@ -71,16 +73,24 @@ def approve_proposal(req: ApprovalRequest, request: Request, x_api_key: str = He
         try:
             record_proof_check(True)
         except Exception:
-            pass
+            logger.exception("Failed to record successful proof check")
         return {"status": "COMMITTED", "tx_hash": tx_hash}
     except LedgerError as e:
-        code_map = {"INVALID_TOKEN": 404, "TOKEN_EXPIRED": 408, "INVALID_SIGNATURE": 403, "CHAIN_DIVERGENCE": 409}
-        return JSONResponse(status_code=code_map.get(e.code, 500), content={"error": e.code, "message": str(e)})
+        code_map = {
+            "INVALID_TOKEN": 404,
+            "TOKEN_EXPIRED": 408,
+            "INVALID_SIGNATURE": 403,
+            "CHAIN_DIVERGENCE": 409,
+        }
+        return JSONResponse(
+            status_code=code_map.get(e.code, 500),
+            content={"error": e.code, "message": str(e)},
+        )
     except Exception as e:
         try:
             record_proof_check(False)
         except Exception:
-            pass
+            logger.exception("Failed to record failed proof check")
         return JSONResponse(status_code=500, content={"error": "INTERNAL_ERROR", "message": str(e)})
 
 

@@ -1,6 +1,6 @@
 import unittest
 
-from src.governance.guardrail_dg_v1 import DeontologicalGuardrail
+from src.governance.nemo_guard import DeontologicalGuardrail
 
 
 class TestGuardrail(unittest.TestCase):
@@ -13,7 +13,11 @@ class TestGuardrail(unittest.TestCase):
         self.assertFalse(passed)
 
     def test_case_insensitive(self):
+        """Test that guardrail detects violations regardless of case."""
         text = "This would be ILLEGAL activity"
+        passed, _ = self.g.validate_content(text)
+        self.assertFalse(passed)
+        text = "This would be illegal activity"
         passed, _ = self.g.validate_content(text)
         self.assertFalse(passed)
 

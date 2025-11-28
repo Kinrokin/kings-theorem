@@ -1,11 +1,11 @@
 """
 Test counterfactual engine probabilistic discovery of adversarial paths.
 """
-import pytest
 
 
 class DummyKernel:
     """Simple kernel for testing."""
+
     def __init__(self, name: str, val: float):
         self.name = name
         self.val = val
@@ -22,7 +22,7 @@ def test_counterfactual_discovery():
     kr = {
         "k1": DummyKernel("k1", 0.1),
         "k2": DummyKernel("k2", -1e9),  # Adversarial
-        "k3": DummyKernel("k3", 0.2)
+        "k3": DummyKernel("k3", 0.2),
     }
     engine = CounterfactualEngine(kernel_registry=kr, rng_seed=123)
     worlds = engine.explore_composition_space(input_data={}, monte_carlo_samples=500)
@@ -40,7 +40,7 @@ def test_counterfactual_safe_composition():
     kr = {
         "k1": DummyKernel("k1", 0.5),
         "k2": DummyKernel("k2", 0.6),
-        "k3": DummyKernel("k3", 0.7)
+        "k3": DummyKernel("k3", 0.7),
     }
     engine = CounterfactualEngine(kernel_registry=kr, rng_seed=42)
     worlds = engine.explore_composition_space(input_data={}, monte_carlo_samples=100)
@@ -58,7 +58,7 @@ def test_counterfactual_dependency_graph():
         "k1": DummyKernel("k1", 0.1),
         "k2": DummyKernel("k2", 0.2),
         "k3": DummyKernel("k3", 0.3),
-        "k4": DummyKernel("k4", 0.4)
+        "k4": DummyKernel("k4", 0.4),
     }
     engine = CounterfactualEngine(kernel_registry=kr, rng_seed=99)
 
@@ -74,18 +74,15 @@ def test_counterfactual_dependency_graph():
 def test_counterfactual_nan_detection():
     """Test detection of NaN/Inf outputs."""
     from src.reasoning.counterfactual_engine import CounterfactualEngine
-    import numpy as np
 
     class BadKernel:
         def __init__(self, name):
             self.name = name
-        def process(self, _):
-            return {"x": float('nan'), "name": self.name}
 
-    kr = {
-        "k1": DummyKernel("k1", 0.5),
-        "k2": BadKernel("k2_bad")
-    }
+        def process(self, _):
+            return {"x": float("nan"), "name": self.name}
+
+    kr = {"k1": DummyKernel("k1", 0.5), "k2": BadKernel("k2_bad")}
     engine = CounterfactualEngine(kernel_registry=kr, rng_seed=55)
     worlds = engine.explore_composition_space(input_data={}, monte_carlo_samples=50)
 

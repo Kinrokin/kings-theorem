@@ -24,17 +24,19 @@ repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.1.6
     hooks:
-      - id: ruff-format
-        stages: [commit]
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix]
         stages: [commit]
 
   - repo: https://github.com/PyCQA/bandit
-    rev: 1.7.5
+    rev: 1.7.9
     hooks:
       - id: bandit
         additional_dependencies: ['bandit[toml]', 'pbr']
+        language_version: python3.11
+        pass_filenames: false
+        entry: python
+        args: ['-X', 'utf8', '-m', 'bandit', '-r', 'src', 'kings-theorem/src', '-x', 'tests,kings-theorem/tests']
 
   - repo: https://github.com/psf/black
     rev: 23.11.0

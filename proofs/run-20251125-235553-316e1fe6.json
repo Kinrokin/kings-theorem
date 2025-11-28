@@ -1,0 +1,15 @@
+{
+  "version": "1.0",
+  "run_id": "run-20251125-235553-316e1fe6",
+  "created_at": "2025-11-25T23:55:53.698424+00:00",
+  "entry_count": 2,
+  "head_hash": "a03166e069df5696ae330348799ebdca7e1f0442ba0a0b1a1facc3b1a3a64f32",
+  "log_path": "logs\\demo-run.jsonl",
+  "verification": {
+    "valid": true,
+    "entries_checked": 2
+  },
+  "metrics": {
+    "catastrophic_rate": 0.0
+  }
+}

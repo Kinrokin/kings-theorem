@@ -6,3 +6,8 @@
 h1, h2, h3 { color: #66F2C7 !important; text-shadow: 0 0 20px rgba(102, 242, 199, 0.2); }
 div[data-testid="stMetric"] { background-color: rgba(0, 36, 27, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); }
 div[data-testid="stTextArea"] textarea { background-color: rgba(255, 255, 255, 0.05); color: #ffffff; border-color: #66F2C7; }
+.risk-badge { padding: 12px 16px; border-radius: 8px; margin-top: 12px; font-weight: 600; box-shadow: 0 0 12px rgba(0,0,0,0.4); text-transform: uppercase; letter-spacing: 0.08em; }
+.risk-badge.risk-catastrophic { background: #B71C1C; color: #fff; }
+.risk-badge.risk-severe { background: #E65100; color: #fff; }
+.risk-badge.risk-moderate { background: #FBC02D; color: #161b22; }
+.risk-badge.risk-low { background: #2E7D32; color: #e0f2ee; }

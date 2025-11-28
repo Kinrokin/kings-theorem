@@ -6,11 +6,10 @@ Prevents EvilKernel attacks by rejecting unknown/unattested kernels at runtime.
 
 from __future__ import annotations
 
-import hashlib
 import inspect
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 
 from src.crypto import compute_file_hash
 
@@ -80,9 +79,7 @@ class KernelAttestationRegistry:
         module_path = Path(module.__file__)
         return compute_file_hash(str(module_path))
 
-    def attest_kernel(
-        self, kernel_name: str, kernel_class: type, approved_by: str
-    ) -> KernelAttestation:
+    def attest_kernel(self, kernel_name: str, kernel_class: type, approved_by: str) -> KernelAttestation:
         """Attest a kernel by computing its hash and adding to registry.
 
         Args:
@@ -204,8 +201,7 @@ def verify_kernel_or_fail(kernel_name: str, kernel_class: type) -> None:
 
     if not registry.is_kernel_approved(kernel_name):
         raise RuntimeError(
-            f"Kernel not approved: {kernel_name}. "
-            f"Run: python scripts/attest_kernels.py to generate allowlist."
+            f"Kernel not approved: {kernel_name}. " f"Run: python scripts/attest_kernels.py to generate allowlist."
         )
 
     if not registry.verify_kernel(kernel_name, kernel_class):

@@ -1,4 +1,4 @@
-from src.utils.gov_config import GovernanceConfig, gov_config
+from src.utils.gov_config import gov_config
 
 
 def test_gov_config_loads_defaults_and_values():

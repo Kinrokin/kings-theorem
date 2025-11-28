@@ -1,0 +1,4 @@
+# file: C:\KingsTheorem_v53\kings-theorem-v53\src\primitives\mtl.py
+# hypothesis_version: 6.148.2
+
+[0.0, '>=', 'always', 'ethics >= 0.7', 'eventually', 'until', 'values']

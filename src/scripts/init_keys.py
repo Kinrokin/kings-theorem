@@ -1,4 +1,9 @@
-﻿import os
+import os
+import sys
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
+# ruff: noqa: E402
+import os
 import sys
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
@@ -7,6 +12,7 @@ import logging
 from src.logging_config import setup_logging
 from src.utils.crypto import generate_keypair
 
+"""Initialize operator keys for the Kings Theorem engine."""
 logger = logging.getLogger(__name__)
 
 if __name__ == "__main__":

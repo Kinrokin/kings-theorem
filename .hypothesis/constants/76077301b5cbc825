@@ -1,0 +1,4 @@
+# file: C:\KingsTheorem_v53\kings-theorem-v53\src\governance\tri_governor.py
+# hypothesis_version: 6.148.2
+
+[0.0, 0.2, 0.4, 0.5, 0.6, 0.7, 0.8, 0.95, 1.0, 'CATASTROPHIC', 'DROP', 'EXECUTE', 'FREEZE', 'HALT', 'HIGH', 'LOW', 'MID', 'MODERATE', 'PASS', 'REJECT', 'SEVERE', 'TIER_5_HALT', 'VETO', 'aggregate_risk', 'audit_flags', 'causal', 'constraint_tension', 'decision', 'integrity', 'integrity_violation', 'reason', 'replay_confidence', 'risk_score', 'risk_tier', 'tags', 'temporal', 'unethical', 'warrant']

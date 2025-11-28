@@ -1,0 +1,4 @@
+# file: C:\KingsTheorem_v53\kings-theorem-v53\src\kernels\raft_arbiter.py
+# hypothesis_version: 6.148.2
+
+['FOLLOWER', 'LEADER', 'RaftArbiter', 'RaftArbiterNode', 'RaftCluster', 'RaftConfig', 'accepted', 'decision', 'id', 'unknown']

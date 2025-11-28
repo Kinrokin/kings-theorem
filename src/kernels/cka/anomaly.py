@@ -1,7 +1,4 @@
-﻿import numpy as np
-from numpy.linalg import norm
-
-from src.metrics.spectral_guard import check_spectral_correlation  # Used elsewhere
+import numpy as np
 
 # Placeholder for build_weighted_deGroot_W and hessian_bounded_step
 # These are only used if a full CKA kernel is implemented but are not core to the demo

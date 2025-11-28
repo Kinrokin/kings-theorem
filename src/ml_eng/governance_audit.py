@@ -1,8 +1,4 @@
-﻿import logging
-import os
-import sys
-
-import yaml
+import logging
 
 logger = logging.getLogger(__name__)
 

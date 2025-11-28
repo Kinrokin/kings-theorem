@@ -1,10 +1,12 @@
 # src/ethics/manifold.py
 from __future__ import annotations
+
+import logging
 import math
 from dataclasses import dataclass
-from typing import Dict, Tuple, List
+from typing import Dict, List, Tuple
+
 import numpy as np
-import logging
 
 logger = logging.getLogger("kt.ethics.manifold")
 logger.setLevel(logging.INFO)
@@ -12,6 +14,7 @@ logger.setLevel(logging.INFO)
 # Try SciPy QP solver
 try:
     from scipy.optimize import minimize
+
     SCIPY_AVAILABLE = True
 except Exception:
     SCIPY_AVAILABLE = False
@@ -37,14 +40,14 @@ class EthicalManifold:
             for i, dim in enumerate(dims):
                 lo, hi = self.dimensions[dim]
                 # -x <= -lo  ->  (-1)*x <= -lo
-                A[2*i, i] = -1.0
-                b[2*i] = -lo
+                A[2 * i, i] = -1.0
+                b[2 * i] = -lo
                 # x <= hi
-                A[2*i+1, i] = 1.0
-                b[2*i+1] = hi
-            object.__setattr__(self, 'A', A)
-            object.__setattr__(self, 'b', b)
-            object.__setattr__(self, 'dims', dims)
+                A[2 * i + 1, i] = 1.0
+                b[2 * i + 1] = hi
+            object.__setattr__(self, "A", A)
+            object.__setattr__(self, "b", b)
+            object.__setattr__(self, "dims", dims)
 
     @classmethod
     def from_bounds(cls, bounds: Dict[str, Tuple[float, float]]):
@@ -55,7 +58,13 @@ class EthicalManifold:
         return np.all(self.A.dot(x) <= self.b + 1e-6)  # More tolerance for numerical precision
 
 
-def project_onto_halfspaces(A: np.ndarray, b: np.ndarray, x0: np.ndarray, max_iters: int = 1000, tol: float = 1e-6):
+def project_onto_halfspaces(
+    A: np.ndarray,
+    b: np.ndarray,
+    x0: np.ndarray,
+    max_iters: int = 1000,
+    tol: float = 1e-6,
+):
     """
     Iterative projection using a basic variant of Dykstra's algorithm.
     This works reasonably well for small d,m and avoids heavy QP deps.
@@ -67,7 +76,7 @@ def project_onto_halfspaces(A: np.ndarray, b: np.ndarray, x0: np.ndarray, max_it
     for _ in range(max_iters):
         x_prev = x.copy()
         for i in range(m):
-            ai = A[i:i+1, :]  # shape (1,d)
+            ai = A[i : i + 1, :]  # shape (1,d)
             bi = b[i]
             # project x + p[i] onto halfspace ai x <= bi
             v = x + p[i]
@@ -95,20 +104,31 @@ def project(manifold: EthicalManifold, solution_vector: Dict[str, float]) -> Tup
 
     # Prefer SciPy QP if available (minimize ||x-x0||^2 s.t. A x <= b)
     if SCIPY_AVAILABLE:
-        d = len(dims)
-        def objective(x): return 0.5 * np.sum((x - x0)**2)
+
+        def objective(x):
+            return 0.5 * np.sum((x - x0) ** 2)
+
         cons = []
         # SciPy uses constraints fun(x) >= 0, so transform A x <= b -> b - A x >= 0
         for i in range(manifold.A.shape[0]):
             ai = manifold.A[i]
             bi = manifold.b[i]
-            cons.append({'type': 'ineq', 'fun': lambda x, ai=ai, bi=bi: float(bi - ai.dot(x))})
+            cons.append({"type": "ineq", "fun": lambda x, ai=ai, bi=bi: float(bi - ai.dot(x))})
         x_init = x0
-        res = minimize(objective, x_init, constraints=cons, method='SLSQP', options={'maxiter': 500})
+        res = minimize(
+            objective,
+            x_init,
+            constraints=cons,
+            method="SLSQP",
+            options={"maxiter": 500},
+        )
         if res.success:
             x_star = res.x
         else:
-            logger.warning("SciPy QP failed, falling back to iterative projection. Reason: %s", res.message)
+            logger.warning(
+                "SciPy QP failed, falling back to iterative projection. Reason: %s",
+                res.message,
+            )
             x_star = project_onto_halfspaces(manifold.A, manifold.b, x0)
     else:
         # fallback iterative projection onto half-spaces
@@ -120,6 +140,7 @@ def project(manifold: EthicalManifold, solution_vector: Dict[str, float]) -> Tup
 
 class ManifoldProjector:
     """Backward compatibility wrapper for existing code."""
+
     def __init__(self, manifold: EthicalManifold):
         self.manifold = manifold
 

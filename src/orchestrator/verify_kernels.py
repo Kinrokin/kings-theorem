@@ -1,17 +1,18 @@
 # src/orchestrator/verify_kernels.py
 from __future__ import annotations
-import json
+
 import logging
-from typing import Dict, Any, List, Optional
+import os
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 from src.manifest.signature import verify_manifest
-from pathlib import Path
-import os
-from src.registry.revocation_gate import is_revoked
 from src.metrics.metrics import record_kernel_attestation
+from src.registry.revocation_gate import is_revoked
 
 logger = logging.getLogger("kt.orchestrator.verify_kernels")
 logger.setLevel(logging.INFO)
+
 
 def verify_kernel_metadata_list(
     kernel_manifests: List[Dict[str, Any]],
@@ -28,7 +29,7 @@ def verify_kernel_metadata_list(
     """
     results = {}
     arbiter_failures = []
-    
+
     for m in kernel_manifests:
         kid = m.get("kernel_id", "<unknown>")
         ok, reason = verify_manifest(m, pubkey_pem=pubkey_pem, hmac_secret=hmac_secret)
@@ -41,13 +42,14 @@ def verify_kernel_metadata_list(
         try:
             record_kernel_attestation(bool(ok))
         except Exception:
-            pass
-    
+            logger.exception("Failed to record kernel attestation for %s", kid)
+
     # Optionally fail-fast if any Arbiter fails verification
     if raise_on_arbiter_failure and arbiter_failures:
         raise RuntimeError(f"Critical kernel verification failed for arbiter(s): {arbiter_failures}")
-    
+
     return results
+
 
 def boot_verify_and_enforce(
     kernel_manifests: List[Dict[str, Any]],
@@ -60,10 +62,10 @@ def boot_verify_and_enforce(
     """
     # Use raise_on_arbiter_failure=True for production boot-time checks
     results = verify_kernel_metadata_list(
-        kernel_manifests, 
-        pubkey_pem=pubkey_pem, 
+        kernel_manifests,
+        pubkey_pem=pubkey_pem,
         hmac_secret=hmac_secret,
-        raise_on_arbiter_failure=True
+        raise_on_arbiter_failure=True,
     )
     # enforce: at least one signed Arbiter must exist and be ok
     arbiter_ok = False

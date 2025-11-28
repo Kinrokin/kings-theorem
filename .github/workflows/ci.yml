@@ -97,9 +97,11 @@ jobs:
         run: |
           python scripts/check_risk_budget.py
 
-      - name: Upload coverage reports to Codecov (Rigor & Auditability Gate)
-        uses: codecov/codecov-action@v3
-        with:
-          files: ./coverage.xml
-          fail_ci_if_error: true
-          token: ${{ secrets.CODECOV_TOKEN }}
+      # Codecov disabled until CODECOV_TOKEN secret configured
+      # To enable: Add secret in GitHub → Settings → Secrets → Actions → CODECOV_TOKEN
+      # - name: Upload coverage reports to Codecov (Rigor & Auditability Gate)
+      #   uses: codecov/codecov-action@v3
+      #   with:
+      #     files: ./coverage.xml
+      #     fail_ci_if_error: true
+      #     token: ${{ secrets.CODECOV_TOKEN }}

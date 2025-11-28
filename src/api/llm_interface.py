@@ -22,7 +22,11 @@ def check_connection() -> bool:
 
 
 def query_qwen(
-    prompt: str, system_rule: str = "You are a helpful AI.", model: str = DEFAULT_MODEL, timeout: int = 120, **kwargs
+    prompt: str,
+    system_rule: str = "You are a helpful AI.",
+    model: str = DEFAULT_MODEL,
+    timeout: int = 120,
+    **kwargs,
 ) -> str:
     """
     Robust Synapse function to query Qwen via Ollama API.
@@ -34,7 +38,10 @@ def query_qwen(
         "model": model,
         "prompt": full_prompt,
         "stream": False,
-        "options": {"temperature": kwargs.get("temperature", 0.7), "num_predict": kwargs.get("max_tokens", 4096)},
+        "options": {
+            "temperature": kwargs.get("temperature", 0.7),
+            "num_predict": kwargs.get("max_tokens", 4096),
+        },
     }
 
     try:

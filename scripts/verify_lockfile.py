@@ -17,7 +17,7 @@ LOCK_PATH = ROOT / "requirements.lock"
 
 def _iter_requirement_blocks(lines: list[str]):
     """Iterate requirement blocks, stripping comments for canonicalization.
-    
+
     Prevents comment smuggling attacks by normalizing lockfile format.
     """
     i = 0

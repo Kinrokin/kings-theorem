@@ -1,0 +1,4 @@
+# file: C:\KingsTheorem_v53\kings-theorem-v53\src\algebra\constraint_expression.py
+# hypothesis_version: 6.148.2
+
+['(', '()', ')', 'AND', 'AND\\b|OR\\b', 'ConstraintExpr', 'OR', 'Unexpected EOF', '[A-Za-z0-9_:.<>+-]+', 'and', 'atom', 'or']

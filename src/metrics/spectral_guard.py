@@ -1,4 +1,4 @@
-﻿import numpy as np
+import numpy as np
 
 
 def check_spectral_correlation(weights_a: np.ndarray, weights_b: np.ndarray, threshold: float = 0.92) -> bool:

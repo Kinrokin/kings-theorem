@@ -1,0 +1,4 @@
+# file: C:\KingsTheorem_v53\kings-theorem-v53\src\kernels\teacher_v45.py
+# hypothesis_version: 6.148.2
+
+[100, 'E_peak_threshold', 'Heuristic Path B', 'SALVAGEABLE', 'UNSALVAGEABLE', 'Within 10% slack.', 'action', 'actor', 'constraints', 'e_peak', 'module3_planning', 'mopfo_pipeline', 'rationale', 'reason', 'solution', 'state', 'status', 'teacher', 'z3_proof', 'z3_safe']

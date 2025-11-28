@@ -5,7 +5,7 @@ Proof ID: PRF-TEST-001
 
 import unittest
 
-from src.governance.guardrail_dg_v1 import DeontologicalGuardrail
+from src.governance.nemo_guard import DeontologicalGuardrail
 
 
 class TestGovernance(unittest.TestCase):

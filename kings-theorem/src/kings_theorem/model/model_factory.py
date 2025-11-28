@@ -3,6 +3,7 @@
 Replace internals with your production model loader (HF, TorchServe, ONNX, etc.).
 """
 
+
 def get_model():
     """Return a model-like object with a `generate(prompt, **kwargs)` method.
 

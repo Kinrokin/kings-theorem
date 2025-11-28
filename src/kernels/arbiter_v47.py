@@ -4,16 +4,26 @@ Proof ID: PRF-ARB-008A-LIVE
 """
 
 import logging
+import time
 from pathlib import Path
+from typing import Optional
+
+try:
+    from src.kernels.raft_arbiter import RaftArbiter
+
+    _RAFT_AVAILABLE = True
+except ImportError:
+    _RAFT_AVAILABLE = False
+    RaftArbiter = None
 
 from src.arbitration.pce_bundle import PCEBundle, StepResult, hash_blob
 from src.ethics.manifold import EthicalManifold, ManifoldProjector
-from src.governance.guardrail_dg_v1 import DeontologicalGuardrail
+from src.governance.nemo_guard import DeontologicalGuardrail
 from src.kernels.student_v42 import StudentKernelV42
 from src.kernels.teacher_v45 import TeacherKernelV45
 from src.ledger.emotion_drift_ledger import append_drift
 from src.ledger.pceb_ledger import append_pceb
-from src.primitives.dual_ledger import DualLedger
+from src.primitives.merkle_ledger import MerkleLedger
 from src.proofs.dsl import parse as parse_dsl
 from src.risk.guard import finalize_decision
 from src.ux.emotion_drift import EmotionDriftMonitor, classify_tone
@@ -25,17 +35,19 @@ class ArbiterKernelV47:
     def __init__(
         self,
         guardrail: DeontologicalGuardrail,
-        ledger: DualLedger,
+        ledger: MerkleLedger,
         student: StudentKernelV42,
         teacher: TeacherKernelV45,
         ethical_manifold: EthicalManifold | None = None,
         proof_dsl_path: str | None = None,
         emotion_monitor: EmotionDriftMonitor | None = None,
+        raft_node: Optional[RaftArbiter] = None,
     ):
         self.guardrail = guardrail
         self.ledger = ledger
         self.student = student
         self.teacher = teacher
+        self.raft_node = raft_node  # Optional Raft consensus node
         self.manifold_projector = ManifoldProjector(ethical_manifold) if ethical_manifold else None
         self.proof_program = None
         if proof_dsl_path and Path(proof_dsl_path).exists():
@@ -113,6 +125,20 @@ class ArbiterKernelV47:
         final["pceb_id"] = pceb.bundle_id
         final["pceb_vetoed_locally"] = pceb.is_vetoed_locally()
         self.ledger.log("Arbiter", "PCEB", {"id": pceb.bundle_id, "veto": pceb.is_vetoed_locally()})
+
+        # TITANIUM X: Commit decision to Raft consensus if available
+        if self.raft_node and _RAFT_AVAILABLE:
+            decision_record = {
+                "id": pceb.bundle_id,
+                "outcome": final.get("outcome"),
+                "source": final.get("source"),
+                "timestamp": time.time(),
+            }
+            if self.raft_node.propose(decision_record):
+                logger.info("[TITANIUM] Raft consensus: decision committed")
+            else:
+                logger.warning("[TITANIUM] Raft consensus: forwarded to leader")
+
         try:
             append_pceb(
                 pceb.bundle_id,
@@ -222,3 +248,6 @@ class ArbiterKernelV47:
 
         self.ledger.log("Arbiter", "Ruling", final.get("outcome"))
         return final
+
+
+__all__ = ["ArbiterKernelV47"]

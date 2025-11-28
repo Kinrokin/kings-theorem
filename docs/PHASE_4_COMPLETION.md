@@ -397,7 +397,7 @@ Phase 4 successfully addresses all medium-priority security vulnerabilities from
 
 ---
 
-**Reviewed by:** GitHub Copilot (Claude Sonnet 4.5)  
-**Approved by:** @Kinrokin  
-**Branch:** `kt/harden-api-v1`  
+**Reviewed by:** GitHub Copilot (Claude Sonnet 4.5)
+**Approved by:** @Kinrokin
+**Branch:** `kt/harden-api-v1`
 **Ready for:** Merge to `main` after final review

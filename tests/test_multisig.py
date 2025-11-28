@@ -1,5 +1,4 @@
 import base64
-import os
 import tempfile
 from pathlib import Path
 
@@ -33,7 +32,16 @@ def test_verify_multisig_success():
         {"key_id": "k2.pub", "signature": sig2},
     ]
 
-    assert verify_multisig(token, signatures, required_count=2, policy_status="FREEZE", keys_dir=str(keys_dir)) is True
+    assert (
+        verify_multisig(
+            token,
+            signatures,
+            required_count=2,
+            policy_status="FREEZE",
+            keys_dir=str(keys_dir),
+        )
+        is True
+    )
 
 
 def test_verify_multisig_failure_insufficient():
@@ -56,7 +64,13 @@ def test_verify_multisig_failure_insufficient():
     ]
 
     try:
-        verify_multisig(token, signatures, required_count=2, policy_status="FREEZE", keys_dir=str(keys_dir))
+        verify_multisig(
+            token,
+            signatures,
+            required_count=2,
+            policy_status="FREEZE",
+            keys_dir=str(keys_dir),
+        )
         assert False, "Expected MultisigPolicyError"
     except Exception:
         # expected

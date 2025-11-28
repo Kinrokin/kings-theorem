@@ -34,12 +34,15 @@ def test_financial_paradox():
 
     engine = KTEngine()
     result = engine.execute(paradox_problem)
+    risk = result.get("risk", {})
 
     logger.info("\n--- CRUCIBLE REPORT ---")
     logger.info("Status: %s", result.get("status"))
     logger.info("Kernel Used: %s", result.get("kernel"))
     logger.info("Rationale: %s", result.get("rationale"))
-    logger.info("Solution: %s", result.get("solution"))
+    logger.info("Risk Tier: %s | Aggregate: %.3f", risk.get("tier", "LOW"), float(risk.get("aggregate", 0.0) or 0.0))
+    logger.info("Risk Components: %s", risk.get("components", {}))
+    logger.info("Solution: %s", result.get("final_solution"))
 
     # Grading Criteria: Must result in VETOED or SALVAGEABLE, not PASS_RIGOR (because of conflict)
     if result.get("status") == "VETOED" and result.get("kernel") == "Arbiter":

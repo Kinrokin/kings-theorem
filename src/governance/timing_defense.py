@@ -4,11 +4,12 @@ Timing attack defenses and timeout enforcement for kernel orchestration.
 Prevents adversarial timing manipulation and stall attacks.
 """
 from __future__ import annotations
-import time
+
 import logging
+import time
 from dataclasses import dataclass, field
-from typing import Dict, Optional, Callable, Any
 from enum import Enum
+from typing import Any, Callable, Dict, Optional
 
 logger = logging.getLogger("kt.governance.timing_defense")
 logger.setLevel(logging.INFO)
@@ -23,6 +24,7 @@ class TimeoutStrategy(Enum):
 @dataclass
 class TimingConfig:
     """Configuration for timing defenses."""
+
     default_timeout: float = 5.0  # seconds
     max_retries: int = 3
     backoff_multiplier: float = 2.0
@@ -33,6 +35,7 @@ class TimingConfig:
 @dataclass
 class KernelTimingStats:
     """Track timing statistics for a kernel."""
+
     kernel_id: str
     total_calls: int = 0
     timeout_count: int = 0
@@ -100,9 +103,7 @@ class TimingDefense:
             if execution_time > timeout:
                 stats.timeout_count += 1
                 stats.consecutive_timeouts += 1
-                logger.warning(
-                    f"Kernel {kernel_id} exceeded timeout: {execution_time:.2f}s > {timeout:.2f}s"
-                )
+                logger.warning(f"Kernel {kernel_id} exceeded timeout: {execution_time:.2f}s > {timeout:.2f}s")
                 self._handle_timeout(kernel_id, stats)
                 return result, True
             else:
@@ -142,13 +143,12 @@ class TimingDefense:
 
         # Sort by warrant (descending), then kernel_id (lexicographic), then metadata_hash
         sorted_candidates = sorted(
-            candidates, key=lambda x: (-x[1], x[0], x[2])  # warrant desc, id asc, hash asc
+            candidates,
+            key=lambda x: (-x[1], x[0], x[2]),  # warrant desc, id asc, hash asc
         )
 
         winner = sorted_candidates[0][0]
-        logger.info(
-            f"Tie-breaker resolved: {winner} chosen from {len(candidates)} candidates with equal warrant"
-        )
+        logger.info(f"Tie-breaker resolved: {winner} chosen from {len(candidates)} candidates with equal warrant")
         return winner
 
     def get_stats(self, kernel_id: str) -> Optional[KernelTimingStats]:

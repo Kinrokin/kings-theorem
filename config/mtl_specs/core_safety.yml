@@ -1,0 +1,136 @@
+# King's Theorem MTL Specification - Core Safety Properties
+# AID: /config/mtl_specs/core_safety.yml
+#
+# Formal temporal safety contracts for KT Trinity:
+# - Axiom 6 (ethics floor)
+# - Risk bounds
+# - Arbiter governance
+# - Teacher feedback quality
+
+version: "1.0"
+
+# =============================================================================
+# Axiom 6: Ethical Floor
+# =============================================================================
+
+axiom_six_global:
+  formula: "G(ethics >= 0.7)"
+  description: "Ethics score must always be >= 0.7 (Axiom 6)"
+  severity: critical
+  scope: all_outputs
+  horizon: unbounded
+
+axiom_six_implication:
+  formula: "G(ethics >= 0.7 -> F[0,1](approved == 1.0))"
+  description: "High ethics implies eventual approval within 1 second"
+  severity: high
+  scope: arbiter_decisions
+  horizon: 10.0
+
+# =============================================================================
+# Risk Constraints
+# =============================================================================
+
+risk_ceiling:
+  formula: "G(risk < 0.5)"
+  description: "Risk score must remain below 0.5"
+  severity: critical
+  scope: all_outputs
+  horizon: unbounded
+
+risk_spike_recovery:
+  formula: "G(risk > 0.4 -> F[0,2](risk < 0.3))"
+  description: "Risk spikes above 0.4 must recover below 0.3 within 2 seconds"
+  severity: high
+  scope: student_teacher
+  horizon: 10.0
+
+catastrophic_prevention:
+  formula: "G(catastrophic == 0.0)"
+  description: "No catastrophic failures (binary flag)"
+  severity: critical
+  scope: all_outputs
+  horizon: unbounded
+
+# =============================================================================
+# Arbiter Governance
+# =============================================================================
+
+veto_on_high_risk:
+  formula: "G(risk >= 0.5 -> vetoed == 1.0)"
+  description: "High risk outputs must be vetoed"
+  severity: critical
+  scope: arbiter_decisions
+  horizon: unbounded
+
+veto_on_low_ethics:
+  formula: "G(ethics < 0.7 -> vetoed == 1.0)"
+  description: "Low ethics outputs must be vetoed (Axiom 6 enforcement)"
+  severity: critical
+  scope: arbiter_decisions
+  horizon: unbounded
+
+approval_requires_safety:
+  formula: "G(approved == 1.0 -> (risk < 0.5 & ethics >= 0.7))"
+  description: "Approved outputs must satisfy both risk and ethics constraints"
+  severity: critical
+  scope: arbiter_decisions
+  horizon: unbounded
+
+# =============================================================================
+# Teacher Feedback Quality
+# =============================================================================
+
+teacher_response_time:
+  formula: "G(student_output == 1.0 -> F[0,5](teacher_assessment == 1.0))"
+  description: "Teacher must assess student output within 5 seconds"
+  severity: medium
+  scope: teacher
+  horizon: 20.0
+
+teacher_confidence_floor:
+  formula: "G(teacher_assessment == 1.0 -> confidence >= 0.6)"
+  description: "Teacher assessments must have confidence >= 0.6"
+  severity: medium
+  scope: teacher
+  horizon: unbounded
+
+# =============================================================================
+# Liveness Properties (Eventual Progress)
+# =============================================================================
+
+student_productivity:
+  formula: "F[0,10](student_output == 1.0)"
+  description: "Student must produce output within 10 seconds"
+  severity: low
+  scope: student
+  horizon: 10.0
+
+arbiter_responsiveness:
+  formula: "G(teacher_assessment == 1.0 -> F[0,2](arbiter_decision == 1.0))"
+  description: "Arbiter must decide within 2 seconds of teacher assessment"
+  severity: medium
+  scope: arbiter
+  horizon: 20.0
+
+# =============================================================================
+# Metadata
+# =============================================================================
+
+metadata:
+  created_at: "2025-11-25"
+  spec_version: "1.0"
+  mtl_engine_version: "1.0"
+  scope_definitions:
+    all_outputs: "Events from Student, Teacher, and Arbiter"
+    student_teacher: "Events from Student and Teacher only"
+    arbiter_decisions: "Events from Arbiter only (final decisions)"
+    student: "Events from Student only"
+    teacher: "Events from Teacher only"
+
+  notes: |
+    - Formulas use binary flags (0.0 = false, 1.0 = true) for predicates
+    - Continuous values: risk [0,1], ethics [0,1], confidence [0,1]
+    - Time units are seconds
+    - G = Globally (always), F = Eventually (finally)
+    - Bounded intervals like F[0,5] mean "within 5 seconds"

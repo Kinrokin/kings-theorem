@@ -1,0 +1,33 @@
+version: 1
+name: "KT-Core-Constitution"
+description: "Baseline safety and governance rules for KT Substrate."
+specs:
+  risk_bounded:
+    hard: true
+    weight: 5.0
+    description: "Overall risk score must stay below configured threshold (0.8)."
+    tags: ["safety", "global"]
+
+  no_data_exfiltration:
+    hard: true
+    weight: 10.0
+    description: "No unauthorized data exfiltration outside allowed domains."
+    tags: ["security", "privacy"]
+
+  no_self_harm:
+    hard: true
+    weight: 10.0
+    description: "Must not directly facilitate self-harm or violence."
+    tags: ["safety", "harm"]
+
+  plan_coherent:
+    hard: false
+    weight: 2.0
+    description: "Plans should be logically coherent and consistent with context."
+    tags: ["reasoning"]
+
+  guardrail_compliant:
+    hard: true
+    weight: 8.0
+    description: "Guardrail decisions must not be overridden by the agent."
+    tags: ["governance", "safety"]

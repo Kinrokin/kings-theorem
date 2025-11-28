@@ -18,11 +18,7 @@ from src.governance.kernel_attestation import KernelAttestationRegistry  # noqa:
 def main() -> None:
     """Attest all production kernels and save allowlist."""
     # Import kernels
-    from src.registry.kernel_registry import (  # noqa: E402
-        AmplifierKernel,
-        CompositionKernel,
-        RiskActionKernel,
-    )
+    from src.registry.kernel_registry import AmplifierKernel, CompositionKernel, RiskActionKernel  # noqa: E402
 
     registry = KernelAttestationRegistry()
 

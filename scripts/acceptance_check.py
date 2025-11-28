@@ -1,6 +1,6 @@
 from __future__ import annotations
+
 import json
-import os
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -19,7 +19,7 @@ def check_ci_steps() -> bool:
         "pre-commit run --all-files",
         "bandit -r",
         "safety check",
-        "pytest -q tests/ -k \"not adversarial\"",
+        'pytest -q tests/ -k "not adversarial"',
     ]
     return all(x in txt for x in required)
 

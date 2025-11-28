@@ -1,11 +1,12 @@
-import pytest
+import os
+import sys
+
 
 def pytest_configure(config):
     config.addinivalue_line("markers", "kt_bias: Bias coverage / tradition diversity tests")
     config.addinivalue_line("markers", "kt_emotion: Emotional palette invariants")
     config.addinivalue_line("markers", "kt_composition: Composition safety and theorem checks")
-import os
-import sys
+
 
 # Ensure repo root and src/ are on sys.path so tests can import the package reliably.
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

@@ -1,7 +1,7 @@
 # King's Theorem MVP Status Report
 
-**Date:** November 24, 2025  
-**Branch:** `kt/harden-api-v1`  
+**Date:** November 24, 2025
+**Branch:** `kt/harden-api-v1`
 **Assessment:** MVP-1 ✅ | MVP-2 🔄 70% Complete
 
 ---
@@ -103,7 +103,7 @@ src/
 ## MVP-2 Hardening Status (Phase-by-Phase)
 
 ### ✅ Phase 2: Cryptographic Provenance (COMPLETE)
-**Objective:** Registry rejects unsigned manifests  
+**Objective:** Registry rejects unsigned manifests
 **Status:** 100% - All manifests signed with Ed25519
 
 **Deliverables:**
@@ -120,7 +120,7 @@ $ python -m src.manifest.cli verify -i manifest.json --pubkey keys/pub.pem
 ```
 
 ### ✅ Phase 3: Kernel Attestation (COMPLETE)
-**Objective:** Orchestrator refuses unsigned kernels  
+**Objective:** Orchestrator refuses unsigned kernels
 **Status:** 100% - Boot-time verification enforced
 
 **Deliverables:**
@@ -136,7 +136,7 @@ boot_verify_and_enforce(kernels, pubkey_pem=pubkey)
 ```
 
 ### ✅ Phase 4: Composition Proofs (COMPLETE)
-**Objective:** Mathematical guarantee of pipeline safety  
+**Objective:** Mathematical guarantee of pipeline safety
 **Status:** 100% - Proof DSL with cycle detection
 
 **Deliverables:**
@@ -153,7 +153,7 @@ result = checker.check_proof(proof)  # Detects cycles, self-endorsement
 ```
 
 ### ✅ Phase 5: Adversarial Battery (COMPLETE)
-**Objective:** Automated red-teaming for logic loopholes  
+**Objective:** Automated red-teaming for logic loopholes
 **Status:** 95% - Counterfactual engine + 8 adversarial test suites
 
 **Deliverables:**
@@ -174,7 +174,7 @@ $ pytest tests/adversarial/ -q
 - Attack corpus expansion (prompt injections, jailbreaks)
 
 ### ✅ Phase 4b: Source Flooding Prevention (COMPLETE)
-**Objective:** Prevent adversarial source manipulation  
+**Objective:** Prevent adversarial source manipulation
 **Status:** 100% - Federated registry with diversity constraints
 
 **Deliverables:**
@@ -188,7 +188,7 @@ weights = registry.compute_influence_weights()  # Caps clusters at 40%
 ```
 
 ### ✅ Phase 4c: UX Semantic Audit (COMPLETE)
-**Objective:** Detect deceptive framing beyond token checks  
+**Objective:** Detect deceptive framing beyond token checks
 **Status:** 100% - Pattern-based manipulation detection
 
 **Deliverables:**
@@ -203,7 +203,7 @@ issues = auditor.audit("This is guaranteed to work!")
 ```
 
 ### ❌ Phase 0: Safe Freeze (NOT STARTED)
-**Objective:** Prevent data loss during hardening  
+**Objective:** Prevent data loss during hardening
 **Status:** 0% - Preparation phase not executed
 
 **Blockers:**
@@ -214,7 +214,7 @@ issues = auditor.audit("This is guaranteed to work!")
 **Risk:** HIGH - History scrub could corrupt repo without backup
 
 ### ❌ Phase 1: Hygiene & History Scrub (NOT STARTED)
-**Objective:** Remove all secrets from git history  
+**Objective:** Remove all secrets from git history
 **Status:** 0% - Critical security gap
 
 **Blockers:**
@@ -239,7 +239,7 @@ pre-commit install
 ```
 
 ### 🔄 Phase 7: CI Hardening (50% COMPLETE)
-**Objective:** Automate security gatekeeping  
+**Objective:** Automate security gatekeeping
 **Status:** 50% - Partial automation
 
 **Complete:**
@@ -257,7 +257,7 @@ pre-commit install
 **Gap:** `.github/workflows/ci.yml` needs enhancement
 
 ### ❌ Phase 6: Registry Ledger & Revocation (NOT STARTED)
-**Objective:** Immutable history + kill-switch  
+**Objective:** Immutable history + kill-switch
 **Status:** 0% - No revocation system
 
 **Blockers:**
@@ -275,13 +275,13 @@ class RevocationLedger:
     def revoke_manifest(self, evidence_id, reason, signed_by):
         # Append revocation event (cannot be undone)
         pass
-    
+
     def is_revoked(self, evidence_id) -> bool:
         pass
 ```
 
 ### ❌ Phase 8: Observability (NOT STARTED)
-**Objective:** Visibility into system health  
+**Objective:** Visibility into system health
 **Status:** 0% - No metrics instrumentation
 
 **Blockers:**
@@ -293,7 +293,7 @@ class RevocationLedger:
 **Risk:** LOW - Operational blindness but not blocking
 
 ### ❌ Phase 9: Formalization (PARTIAL)
-**Objective:** Mathematical proof of core kernel  
+**Objective:** Mathematical proof of core kernel
 **Status:** 30% - Skeleton exists but incomplete
 
 **Existing:**
@@ -414,7 +414,7 @@ From the MVP-2 Master Plan, here's the "Definition of Done":
 ## Recommended Action Plan
 
 ### Option A: "Ship MVP-1 Now, Harden Later"
-**Timeline:** 0 days  
+**Timeline:** 0 days
 **Risk:** Medium - Functional but not hardened
 
 1. Merge `kt/harden-api-v1` to `main`
@@ -433,7 +433,7 @@ From the MVP-2 Master Plan, here's the "Definition of Done":
 - ❌ Not audit-ready
 
 ### Option B: "Complete MVP-2 First" (RECOMMENDED)
-**Timeline:** 3-5 days  
+**Timeline:** 3-5 days
 **Risk:** Low - Secure foundation
 
 **Sprint 1 (Day 1-2): Critical Security**
@@ -480,7 +480,7 @@ From the MVP-2 Master Plan, here's the "Definition of Done":
 - ❌ 3-5 day delay
 
 ### Option C: "Fast-Track Critical Security Only"
-**Timeline:** 1-2 days  
+**Timeline:** 1-2 days
 **Risk:** Medium-Low
 
 1. Phase 1: History scrub (4 hours)
@@ -537,7 +537,7 @@ Or would you prefer Option A (ship MVP-1 now) or Option C (fast-track)?
 
 ## Summary
 
-**Q: "Have I already achieved minimum viable code?"**  
+**Q: "Have I already achieved minimum viable code?"**
 **A: YES for MVP-1 (Functional), NO for MVP-2 (Constitutional/Secure).**
 
 You have a **working, tested system** that makes decisions, enforces guardrails, and logs results. That's MVP-1 ✅.

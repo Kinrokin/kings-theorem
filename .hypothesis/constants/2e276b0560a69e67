@@ -1,0 +1,4 @@
+# file: C:\KingsTheorem_v53\kings-theorem-v53\src\registry\ledger.py
+# hypothesis_version: 6.148.2
+
+[',', ':', 'a', 'event_hash', 'evidence_id', 'logs', 'metadata', 'prev_hash', 'r', 'reason', 'revocations.jsonl', 'signed_by', 'timestamp_utc', 'utf-8']

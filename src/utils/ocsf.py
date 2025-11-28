@@ -1,4 +1,4 @@
-﻿import socket
+import socket
 import time
 
 
@@ -13,7 +13,11 @@ def wrap_ocsf_6003(action, actor, outcome, message, data):
         "activity_id": 1,  # Create/Invoke
         "time": int(time.time() * 1000),
         "metadata": {
-            "product": {"name": "KT-Sovereign", "vendor_name": "Primordial", "version": "53.6.0"},
+            "product": {
+                "name": "KT-Sovereign",
+                "vendor_name": "Primordial",
+                "version": "53.6.0",
+            },
             "profiles": ["security_control"],
         },
         "actor": {"user": {"name": actor, "type": "Service Account"}},

@@ -1,8 +1,8 @@
 # Pull Request: Kings Theorem v53 - Phase 2/3 Hardening & System Elevation
 
-**Branch:** `kt/harden-api-v1` → `main`  
-**Author:** System Hardening Agent  
-**Date:** November 23, 2025  
+**Branch:** `kt/harden-api-v1` → `main`
+**Author:** System Hardening Agent
+**Date:** November 23, 2025
 **Status:** Ready for Review ✅
 
 ---

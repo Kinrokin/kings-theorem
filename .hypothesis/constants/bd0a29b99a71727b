@@ -1,0 +1,4 @@
+# file: C:\KingsTheorem_v53\kings-theorem-v53\src\kernels\student_v42.py
+# hypothesis_version: 6.148.2
+
+[0.5, 120, 5000, 'PASS (Student)', 'SIT', '[CRITICAL]', '[ERROR]', 'asyncio', 'attempts', 'constraint', 'content', 'counters', 'data', 'gauges', 'qwen2.5', 'reason', 'response', 'state', 'task', 'text', 'z3_proof', 'z3_safe', 'z3_warning']

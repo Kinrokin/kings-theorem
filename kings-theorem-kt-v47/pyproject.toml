@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "kings-theorem-kt-v47"
+version = "47.0.0"
+description = "King's Theorem (KT-v47) Parallel Cognitive Kernel - S-Tier Optimized"
+authors = ["The Hive Mind"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+numpy = "^1.26.4"
+pydantic = "^2.7.1"
+pymoo = "^0.6.0"
+scipy = "^1.13.1"
+scikit-learn = "^1.5.0"
+metric-temporal-logic = "^0.4.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

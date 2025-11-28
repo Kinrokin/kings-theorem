@@ -1,4 +1,4 @@
-﻿import base64
+import base64
 from pathlib import Path
 
 from cryptography.hazmat.primitives import serialization
@@ -41,7 +41,10 @@ class DecisionBroker:
         else:
             sig_b64 = self._internal_sign(token)
             final_hash = self.ledger.finalize_proposal(
-                token, sig_b64, rationale="AUTO_LOW_RISK_CONFIRMED", kid="internal_automation.pub"
+                token,
+                sig_b64,
+                rationale="AUTO_LOW_RISK_CONFIRMED",
+                kid="internal_automation.pub",
             )
             return {"status": "COMMITTED", "token": token, "hash": final_hash}
 
@@ -60,7 +63,13 @@ class DecisionBroker:
         try:
             # Use ledger's configured keys directory so tests/local ledgers work correctly
             keys_dir = getattr(self.ledger, "keys_dir", None) or str(Path(self.internal_key_path).parent)
-            verify_multisig(token, signatures, required, policy_status="EXECUTE", keys_dir=str(keys_dir))
+            verify_multisig(
+                token,
+                signatures,
+                required,
+                policy_status="EXECUTE",
+                keys_dir=str(keys_dir),
+            )
         except Exception as e:
             return {"status": "ERROR", "msg": f"Multisig verification failed: {e}"}
 

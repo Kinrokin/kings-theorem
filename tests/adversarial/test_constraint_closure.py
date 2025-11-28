@@ -78,7 +78,7 @@ def test_constraint_expr_collect_atoms():
 
 def test_constraint_expr_parse_error_malformed():
     """Test that malformed expressions raise ParseError."""
-    from src.algebra.constraint_expression import parse_constraint_expr, ParseError
+    from src.algebra.constraint_expression import ParseError, parse_constraint_expr
 
     with pytest.raises(ParseError):
         parse_constraint_expr("(fairness AND )")  # Missing right operand
@@ -86,7 +86,7 @@ def test_constraint_expr_parse_error_malformed():
 
 def test_constraint_expr_parse_error_unexpected_token():
     """Test that unexpected tokens raise ParseError."""
-    from src.algebra.constraint_expression import parse_constraint_expr, ParseError
+    from src.algebra.constraint_expression import ParseError, parse_constraint_expr
 
     with pytest.raises(ParseError):
         parse_constraint_expr("fairness justice")  # Missing operator

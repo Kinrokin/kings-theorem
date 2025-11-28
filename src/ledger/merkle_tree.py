@@ -1,4 +1,4 @@
-﻿import hashlib
+import hashlib
 
 
 def sha256(s: bytes) -> str:

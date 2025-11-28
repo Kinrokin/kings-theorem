@@ -1,11 +1,10 @@
-﻿"""
+"""
 AID: src/ml_eng/train_curriculum.py
 Proof ID: PRF-TRAINER-003 (Integrated)
 Purpose: Implements the Godlike Training Protocol.
 """
 
 import logging
-import random
 from pathlib import Path
 
 import numpy as np
@@ -21,7 +20,7 @@ CONFIG_PATH = PROJECT_ROOT / "config" / "ml_eng" / "config_master.yaml"
 
 def load_config():
     try:
-        with open(CONFIG_PATH, "r") as f:
+        with open(CONFIG_PATH, "r"):
             return {}  # yaml removed; return empty config
     except Exception:
         return {}
@@ -33,9 +32,10 @@ CONFIG = load_config()
 class LedgerIngestionDataset(torch.utils.data.Dataset):
     # This class simulates ingesting failures (SITs) from the Dual Ledger
     def __init__(self, n=1000):
-        self.raw_lengths = [random.randint(512, CONFIG.get(\"MAX_SEQ_LENGTH\", 4096)) for _ in range(n)]
+        max_len = CONFIG.get("MAX_SEQ_LENGTH", 4096)
+        self.raw_lengths = np.random.randint(512, max_len + 1, size=n).tolist()
         self.complexity_scores = np.random.rand(n)
-        self.data = [{\"input_ids\": torch.randint(0, 32000, (length,))} for length in self.raw_lengths]
+        self.data = [{"input_ids": torch.randint(0, 32000, (length,))} for length in self.raw_lengths]
 
     def __len__(self):
         return len(self.data)

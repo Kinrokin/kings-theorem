@@ -1,0 +1,4 @@
+# file: C:\KingsTheorem_v53\kings-theorem-v53\src\orchestrator\verify_kernels.py
+# hypothesis_version: 6.148.2
+
+['<unknown>', 'Arbiter', 'KT_REVOCATION_LEDGER', 'kernel_id', 'ok', 'reason', 'type']

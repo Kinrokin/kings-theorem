@@ -1,0 +1,4 @@
+# file: C:\KingsTheorem_v53\kings-theorem-v53\src\registry\cli.py
+# hypothesis_version: 6.148.2
+
+['--dir', '--hmac-secret', '--pubkey', '--revocations', '-d', '.json', 'KT_REVOCATIONS_PATH', '__main__', 'evidence_id', 'id', 'kt-registry', 'manifest_id', 'r', 'rb', 'read_error', 'utf-8']

@@ -1,0 +1,4 @@
+# file: C:\KingsTheorem_v53\kings-theorem-v53\src\engine\executor.py
+# hypothesis_version: 6.148.2
+
+[-0.2, 0.2, 1.0, 5.0, 10.0, 1000, 'API_LIMIT', 'INFEASIBLE_TASK', 'INVALID_INPUT', 'NETWORK', 'NONE', 'RESOURCE_EXHAUSTED', 'TIMEOUT', 'UNKNOWN', 'cancelled', 'duration_ms', 'error_code', 'error_generic', 'error_infeasible', 'error_infra', 'error_msg', 'has_data', 'ok', 'retry_eligible', 'status', 'timeout', 'timestamp', 'unknown']

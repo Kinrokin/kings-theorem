@@ -1,4 +1,5 @@
-﻿import os
+# ruff: noqa: E402
+import os
 import sys
 import threading
 import time
@@ -13,14 +14,15 @@ import logging
 from src.api.server import app
 from src.governance.decision_broker import DecisionBroker
 from src.governance.tri_governor import TriGovernor
-from src.metrics.anomaly import detect_adaptive_replay_anomaly, detect_adversarial_flood
-from src.metrics.spectral_guard import check_spectral_correlation
+from src.metrics.anomaly import detect_adaptive_replay_anomaly
 
 logger = logging.getLogger(__name__)
 
 
 def run_api():
-    uvicorn.run(app, host="0.0.0.0", port=8000, log_level="critical")
+    host = os.getenv("KT_BIND_HOST", "127.0.0.1")
+    port = int(os.getenv("KT_BIND_PORT", "8000"))
+    uvicorn.run(app, host=host, port=port, log_level="critical")
 
 
 def main():

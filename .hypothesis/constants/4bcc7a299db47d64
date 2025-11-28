@@ -1,0 +1,4 @@
+# file: C:\KingsTheorem_v53\kings-theorem-v53\src\ethics\manifold.py
+# hypothesis_version: 6.148.2
+
+[-1.0, 0.0, 1e-06, 0.5, 1.0, 500, 1000, 'A', 'SLSQP', 'b', 'dims', 'fun', 'ineq', 'kt.ethics.manifold', 'maxiter', 'type']

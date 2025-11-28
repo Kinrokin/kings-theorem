@@ -1,0 +1,4 @@
+# file: C:\KingsTheorem_v53\kings-theorem-v53\audit\model_drift.py
+# hypothesis_version: 6.148.2
+
+[0.0, 0.1, 1.0, 'CATASTROPHIC', 'ERROR', 'EXECUTE', 'FREEZE', 'HALT', 'LOW', 'MODERATE', 'SEVERE', 'TIER_5_HALT', 'UNKNOWN', 'aggregate', 'baseline_scenarios', 'components', 'current_results', 'decision', 'drifted', 'error', 'governance', 'problem_id', 'r', 'regression_count', 'regressions', 'risk', 'status', 'summary', 'tier', 'total_scenarios', 'utf-8', 'w']

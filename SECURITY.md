@@ -205,23 +205,23 @@ def rotate_all_manifests(old_priv_path, new_priv_path, manifest_dir):
     """Re-sign all manifests with new key."""
     with open(new_priv_path, 'rb') as f:
         new_privkey = f.read()
-    
+
     for manifest_file in Path(manifest_dir).rglob('*.json'):
         with open(manifest_file, 'r') as f:
             manifest = json.load(f)
-        
+
         # Strip old signature fields
         manifest.pop('signature', None)
         manifest.pop('content_hash', None)
         manifest.pop('signed_by', None)
-        
+
         # Re-sign with new key
         signed = sign_manifest(manifest, privkey_pem=new_privkey)
-        
+
         # Overwrite
         with open(manifest_file, 'w') as f:
             json.dump(signed, f, indent=2)
-        
+
         print(f"✓ Re-signed {manifest_file}")
 
 if __name__ == "__main__":
@@ -293,7 +293,7 @@ git push origin --force --all
 1. **Manifest/EvidenceID Forgery**: Attacker creates fake manifests with copied EvidenceIDs
    - Mitigation: Ed25519 cryptographic signing (`src/manifest/signature.py`)
    - Validation: Registry batch verification (`src/registry/cli.py`)
-   
+
 2. **Kernel Identity Spoofing**: Fake Arbiter kernels with elevated veto_power
    - Mitigation: Kernel metadata signing + boot-time verification (`src/orchestrator/verify_kernels.py`)
    - Enforcement: `boot_verify_and_enforce()` raises on Arbiter failures
@@ -305,20 +305,20 @@ git push origin --force --all
 **High Priority Threats:**
 4. **Manifold Bypass**: Adversarial vectors escape ethical bounds
    - Mitigation: Convex QP projection (`src/ethics/manifold.py`)
-   
+
 5. **Proof Spoofing**: Circular or invalid proofs accepted as valid
    - Mitigation: DAG cycle detection (`src/proofs/proof_lang.py`)
-   
+
 6. **Counterfactual Blindness**: Low-probability catastrophic paths missed
    - Mitigation: Monte Carlo sampling (`src/reasoning/counterfactual_engine.py`)
 
 **Medium Priority Threats:**
 7. **Timing Attacks**: Kernel orchestration delays manipulated
    - Mitigation: Deterministic tie-breaking (`src/governance/timing_defense.py`)
-   
+
 8. **Homogenization**: Outputs collapse to single "safe" value
    - Mitigation: Entropy monitoring (`src/kernels/entropy_monitor.py`)
-   
+
 9. **Dependency Poisoning**: Malicious packages in supply chain
    - Mitigation: Lockfile enforcement + SCA scanning (see below)
 
@@ -326,15 +326,15 @@ git push origin --force --all
 4. **Counterfactual Rare Events**: Low-probability catastrophic composition failures
    - Mitigation: Enhanced counterfactual engine with adversarial heuristics (`src/reasoning/counterfactual_engine.py`)
    - Detection: NaN/Inf checks, extreme values, contradictions, risk-without-safety patterns
-   
+
 5. **Source Flooding**: Adversaries register many fake sources to manipulate consensus
    - Mitigation: Federated source registry with flood detection (`src/sourcing/source_registry.py`)
    - Enforcement: Registration rate limits, reputation scoring, cluster diversity caps
-   
+
 6. **Circular Proof Endorsement**: Proofs that reference themselves or form cycles
    - Mitigation: Proof meta-checker with self-endorsement detection (`src/proofs/proof_lang.py`)
    - Validation: DFS cycle detection, depth limits, invariant verification
-   
+
 7. **UX Manipulation**: Deceptive framing, omissions, and balance violations
    - Mitigation: Semantic audit beyond token checks (`src/ux/semantic_audit.py`)
    - Detection: Forbidden framing patterns, disclosure requirements, balance keywords
@@ -342,10 +342,10 @@ git push origin --force --all
 **Lower Priority Threats:**
 8. **Timing Attacks**: Kernel orchestration delays manipulated
    - Mitigation: Deterministic tie-breaking (`src/governance/timing_defense.py`)
-   
+
 9. **Homogenization**: Outputs collapse to single "safe" value
    - Mitigation: Entropy monitoring (`src/kernels/entropy_monitor.py`)
-   
+
 10. **Dependency Poisoning**: Malicious packages in supply chain
    - Mitigation: Lockfile enforcement + SCA scanning (see below)
 
@@ -515,13 +515,13 @@ See `.github/workflows/ci.yml` for automated `safety` and `bandit` scans on ever
   - `tests/test_manifest_signature.py` (Ed25519/HMAC)
   - `tests/test_kernel_metadata_tamper.py` (boot-time verification)
   - `tests/test_composition_proof.py` (global invariants)
-  
+
 - **Phase 4 (Medium Priority)**: Rare events, source flooding, proof cycles, UX manipulation
   - `tests/test_counterfactual_rare_events.py` (8 tests: NaN, contradictions, extreme values)
   - `tests/test_source_flooding.py` (5 tests: flood detection, reputation, diversity)
   - `tests/test_proof_meta_checks.py` (7 tests: cycles, self-endorsement, depth limits)
   - `tests/test_ux_semantic_audit.py` (13 tests: framing, disclosures, balance)
-  
+
 - **Adversarial Battery**: `tests/adversarial/` (37+ tests)
 
 **CI Workflow:** `.github/workflows/ci.yml`

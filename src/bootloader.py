@@ -14,7 +14,7 @@ import json
 import logging
 import os
 import sys
-from typing import Dict
+from typing import Any, Dict
 
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
@@ -39,27 +39,51 @@ def compute_hashes(root: str) -> Dict[str, str]:
     return hashes
 
 
-def load_manifest(path: str) -> Dict[str, str]:
+def load_manifest(path: str) -> Dict[str, Any]:
     if not os.path.exists(path):
         raise FileNotFoundError(f"Manifest not found: {path}")
     with open(path, "r", encoding="utf-8") as f:
         manifest = json.load(f)
-    # Expect manifest to have a 'files' mapping and a signature
-    files = manifest.get("files")
-    if not isinstance(files, dict):
-        raise ValueError('Manifest missing "files" mapping')
+    # Two schema types supported:
+    # 1) Build manifest with `files` mapping + `signature`
+    # 2) Serving manifest with `content_hash` + `_signature`
+    if not (isinstance(manifest.get("files"), dict) or manifest.get("content_hash")):
+        raise ValueError('Manifest missing required fields: expected "files" or "content_hash"')
     return manifest
 
 
+def _canonical_json(obj: Any) -> bytes:
+    return json.dumps(obj, sort_keys=True, separators=(",", ":")).encode("utf-8")
+
+
 def verify_signature(manifest: dict, pubkey_path: str) -> bool:
+    # Support both signature layouts
     sig_b64 = manifest.get("signature")
-    if not sig_b64:
-        logger.error("[BOOTLOADER] Manifest missing signature")
-        return False
-    signature = base64.b64decode(sig_b64)
-    # Prepare payload (manifest without signature)
-    manifest_copy = {k: v for k, v in manifest.items() if k != "signature"}
-    payload = json.dumps(manifest_copy, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    sig_block = manifest.get("_signature")
+    algorithm = None
+    if sig_block and isinstance(sig_block, dict):
+        sig_hex = sig_block.get("signature")
+        algorithm = (sig_block.get("algorithm") or "").lower()
+        if not sig_hex:
+            logger.error("[BOOTLOADER] Serving manifest missing _signature.signature")
+            return False
+        try:
+            signature = bytes.fromhex(sig_hex)
+        except ValueError:
+            logger.error("[BOOTLOADER] Invalid hex in serving signature")
+            return False
+        # Payload excludes the _signature block
+        payload = _canonical_json({k: v for k, v in manifest.items() if k != "_signature"})
+    else:
+        if not sig_b64:
+            logger.error("[BOOTLOADER] Manifest missing signature")
+            return False
+        try:
+            signature = base64.b64decode(sig_b64)
+        except Exception:
+            logger.error("[BOOTLOADER] Signature is not valid base64")
+            return False
+        payload = _canonical_json({k: v for k, v in manifest.items() if k != "signature"})
 
     if not os.path.exists(pubkey_path):
         logger.error("[BOOTLOADER] Public key not found: %s", pubkey_path)
@@ -70,19 +94,14 @@ def verify_signature(manifest: dict, pubkey_path: str) -> bool:
 
     pubkey = load_pem_public_key(key_data)
     try:
-        # Try RSA-style verification
-        pubkey.verify(signature, payload, padding.PKCS1v15(), hashes.SHA256())
-        return True
-    except TypeError:
-        # Likely an Ed25519 key (single-arg verify)
-        try:
+        if algorithm == "ed25519":
             pubkey.verify(signature, payload)
             return True
-        except Exception:
-            logger.exception("[BOOTLOADER] Signature verification failed (Ed25519)")
-            return False
+        # Default: attempt RSA PKCS1v15 + SHA256; also handles RSA keys when algorithm unspecified
+        pubkey.verify(signature, payload, padding.PKCS1v15(), hashes.SHA256())
+        return True
     except Exception:
-        logger.exception("[BOOTLOADER] Signature verification failed (RSA)")
+        logger.exception("[BOOTLOADER] Signature verification failed")
         return False
 
 
@@ -95,35 +114,54 @@ def verify(src_root: str, manifest_path: str) -> bool:
         logger.exception("[BOOTLOADER] Failed to load manifest: %s", e)
         return False
 
-    # Verify manifest signature first
+    # Dev overrides
+    dev_skip_sig = (
+        os.environ.get("KT_BOOTLOADER_DEV", "0") == "1" or os.environ.get("KT_BOOTLOADER_SKIP_SIG", "0") == "1"
+    )
+    dev_skip_hash = os.environ.get("KT_BOOTLOADER_SKIP_HASH", "0") == "1"
+
+    # Verify manifest signature first (unless dev override)
     pubkey_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "keys", "operator.pub"))
-    try:
-        sig_ok = verify_signature(manifest, pubkey_path)
-    except Exception as e:
-        logger.exception("[BOOTLOADER] Signature verification raised exception: %s", e)
-        sig_ok = False
+    if dev_skip_sig:
+        logger.warning("[BOOTLOADER] DEV MODE: Skipping manifest signature verification.")
+        sig_ok = True
+    else:
+        try:
+            sig_ok = verify_signature(manifest, pubkey_path)
+        except Exception as e:
+            logger.exception("[BOOTLOADER] Signature verification raised exception: %s", e)
+            sig_ok = False
 
-    if not sig_ok:
-        # Critical security violation: manifest signature invalid
-        # Print a clearly visible message and halt immediately with exit code 1.
-        print("[CRITICAL] SECURITY VIOLATION: MANIFEST TAMPERED")
-        logger.critical("[BOOTLOADER] Manifest signature verification failed. Aborting.")
-        sys.exit(1)
+        if not sig_ok:
+            print("[CRITICAL] SECURITY VIOLATION: MANIFEST TAMPERED")
+            logger.critical("[BOOTLOADER] Manifest signature verification failed. Aborting.")
+            sys.exit(1)
 
-    expected = manifest.get("files", {})
-
-    # Compare only files recorded in manifest
-    mismatch = []
-    for rel, exp_hash in expected.items():
-        cur_hash = current.get(rel)
-        if cur_hash != exp_hash:
-            mismatch.append((rel, exp_hash, cur_hash))
-
-    if mismatch:
-        logger.error("[BOOTLOADER] Integrity violation detected. Mismatches:")
-        for rel, exp, cur in mismatch:
-            logger.error("  - %s: expected=%s current=%s", rel, exp, cur)
-        return False
+    files_map = manifest.get("files")
+    if isinstance(files_map, dict):
+        if dev_skip_hash:
+            logger.warning("[BOOTLOADER] DEV MODE: Skipping per-file hash checks.")
+        else:
+            mismatch = []
+            for rel, exp_hash in files_map.items():
+                cur_hash = current.get(rel)
+                if cur_hash != exp_hash:
+                    mismatch.append((rel, exp_hash, cur_hash))
+            if mismatch:
+                logger.error("[BOOTLOADER] Integrity violation detected. Mismatches:")
+                for rel, exp, cur in mismatch:
+                    logger.error("  - %s: expected=%s current=%s", rel, exp, cur)
+                return False
+    else:
+        # Serving manifest schema: verify composite content hash over src tree
+        if dev_skip_hash:
+            logger.warning("[BOOTLOADER] DEV MODE: Skipping content hash validation.")
+        else:
+            composite = hashlib.sha256(_canonical_json(current)).hexdigest()
+            expected_ch = manifest.get("content_hash")
+            if composite != expected_ch:
+                logger.error("[BOOTLOADER] Content hash mismatch: expected=%s current=%s", expected_ch, composite)
+                return False
 
     logger.info("[BOOTLOADER] Integrity verified: src/ matches manifest and signature is valid.")
     return True

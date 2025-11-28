@@ -1,0 +1,4 @@
+# file: C:\KingsTheorem_v53\kings-theorem-v53\src\primitives\verifiers.py
+# hypothesis_version: 6.148.2
+
+[0.0, 0.5, 5000, 'profit', 'risk', 'timeout', 'value']

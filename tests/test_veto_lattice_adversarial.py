@@ -19,7 +19,10 @@ def test_compositional_loophole_exposure():
     step2 = StepResult(step_id="T2", verdict="CONTINUE", output_artifact={"k": "B"})
     step3 = StepResult(step_id="T3", verdict="EXECUTE", output_artifact={"k": "C"})
     bundle = PCEBundle(
-        bundle_id=str(uuid.uuid4()), initial_input_hash="foo", steps=[step1, step2, step3], final_output_hash="bar"
+        bundle_id=str(uuid.uuid4()),
+        initial_input_hash="foo",
+        steps=[step1, step2, step3],
+        final_output_hash="bar",
     )
     veto = VetoLattice()
     # deterministic check: since we used hash-based condition, ensure function runs and returns bool

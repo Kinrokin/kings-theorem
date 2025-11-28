@@ -1,0 +1,4 @@
+# file: C:\KingsTheorem_v53\kings-theorem-v53\src\ux\semantic_audit.py
+# hypothesis_version: 6.148.2
+
+['100% certain', '\\b(always|never)\\b', '\\b(safe|secure)\\b', 'absolute truth', 'advantage', 'adverse', 'against', 'always correct', 'assumption', 'benefit', 'bias', 'con', 'constraint', 'contradiction', 'cost', 'could be', 'critical', 'disadvantage', 'domain', 'downside', 'drawback', 'financial', 'framing', 'global', 'guaranteed', 'high', 'indisputable', 'invest', 'kt.ux.semantic', 'limitation', 'loss', 'low', 'may not', 'medical', 'medication', 'medium', 'never wrong', 'omission', 'pro', 'proven fact', 'return', 'risk', 'side effect', 'stakes', 'throughout', 'tradeoff', 'treatment', 'uncertain', 'unknown']

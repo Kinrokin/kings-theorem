@@ -1,5 +1,4 @@
 import unittest
-from types import SimpleNamespace
 
 from src.kernels.arbiter_v47 import ArbiterKernelV47
 

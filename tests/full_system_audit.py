@@ -4,18 +4,11 @@ Proof ID: PRF-K2-FORGE-001
 Purpose: Self-Verification
 """
 
-import os
-import re
-import sys
+import importlib.util
 from pathlib import Path
 
 # --- ROBUST IMPORT CHECK ---
-try:
-    import numpy
-
-    NUMPY_OK = True
-except ImportError:
-    NUMPY_OK = False
+NUMPY_OK = importlib.util.find_spec("numpy") is not None
 
 PROJECT_ROOT = Path(__file__).parent.parent.resolve()
 

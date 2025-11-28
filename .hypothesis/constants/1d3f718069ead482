@@ -1,0 +1,4 @@
+# file: C:\KingsTheorem_v53\kings-theorem-v53\src\utils\ocsf.py
+# hypothesis_version: 6.148.2
+
+[1000, 6003, '53.6.0', 'API Activity', 'DecisionBroker', 'KT-Sovereign', 'Primordial', 'SUCCESS', 'Service Account', 'activity_id', 'actor', 'api', 'category_uid', 'class_name', 'class_uid', 'dst_endpoint', 'hostname', 'message', 'metadata', 'name', 'operation', 'product', 'profiles', 'security_control', 'service', 'status', 'status_id', 'time', 'type', 'unmapped', 'user', 'vendor_name', 'version']

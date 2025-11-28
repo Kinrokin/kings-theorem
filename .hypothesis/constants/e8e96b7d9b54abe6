@@ -1,0 +1,4 @@
+# file: C:\KingsTheorem_v53\kings-theorem-v53\src\ledger\integrity_ledger.py
+# hypothesis_version: 6.148.2
+
+[1000.0, 300, 900, ',', '.append.tmp', '.pem', '.precommit', '.pub', '0', ':', 'Arbiter', 'BLOCK_SEAL', 'CHAIN_DIVERGENCE', 'COMMITTED', 'ESCROWED', 'Epoch Sealing', 'INVALID_SIGNATURE', 'INVALID_TOKEN', 'PENDING', 'PRECOMMIT', 'Proposal Escrowed', 'SUCCESS', 'System', 'TOKEN_EXPIRED', 'TTL Exceeded', 'a', 'auth', 'chain.jsonl', 'count', 'end_hash', 'hash', 'key_id', 'keys', 'kid', 'kids', 'ledger', 'ledger_ttl_sec', 'merkle_root', 'operator.pub', 'prev_hash', 'r', 'rationale', 'security', 'signature', 'signatures', 'src', 'start_hash', 'status', 'status_id', 'store', 'time', 'token_version', 'ts', 'tsa_url', 'tsr_token', 'ttl_sec', 'utf-8', 'w']

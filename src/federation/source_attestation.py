@@ -36,9 +36,7 @@ class FederationAttestationRegistry:
             allowlist_path: Path to federation allowlist YAML
         """
         if allowlist_path is None:
-            allowlist_path = (
-                Path(__file__).resolve().parents[2] / "config" / "federation_allowlist.yml"
-            )
+            allowlist_path = Path(__file__).resolve().parents[2] / "config" / "federation_allowlist.yml"
 
         self.allowlist_path = allowlist_path
         self.attestations: Dict[str, SourceAttestation] = {}
@@ -154,9 +152,7 @@ class FederationAttestationRegistry:
             yaml.dump(data, f, sort_keys=False, default_flow_style=False)
 
 
-def sign_federated_data(
-    data: Dict[str, Any], source_id: str, key_id: str = "governance"
-) -> Dict[str, Any]:
+def sign_federated_data(data: Dict[str, Any], source_id: str, key_id: str = "governance") -> Dict[str, Any]:
     """Sign federated data with Ed25519 signature.
 
     Args:
@@ -218,12 +214,10 @@ def verify_source_or_fail(source_id: str, content: str) -> None:
 
     if not registry.is_source_approved(source_id):
         raise RuntimeError(
-            f"Federation source not approved: {source_id}. "
-            f"Run: python scripts/attest_federation_sources.py"
+            f"Federation source not approved: {source_id}. " f"Run: python scripts/attest_federation_sources.py"
         )
 
     if not registry.verify_source(source_id, content):
         raise RuntimeError(
-            f"Federation source hash mismatch: {source_id}. "
-            f"Source content has been modified since attestation."
+            f"Federation source hash mismatch: {source_id}. " f"Source content has been modified since attestation."
         )

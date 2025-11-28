@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import itertools
 import logging
-import random
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Set
 
@@ -55,7 +54,7 @@ class CounterfactualEngine:
         self.world_cache: Dict[str, CounterfactualWorld] = {}
         self.max_path_length = 4  # Bounded exploration for tractability
         self.kernels = kernel_registry or {}
-        self.rng = random.Random(rng_seed)
+        self.rng = np.random.default_rng(rng_seed)
         self.deps = DependencyGraph()
         for kid in self.kernels.keys():
             self.deps.add_node(kid)
@@ -130,8 +129,9 @@ class CounterfactualEngine:
 
         # 2) Monte Carlo sampling with importance bias
         for _ in range(monte_carlo_samples):
-            size = self.rng.choices([1, 2, 3, 4, 5], weights=[0.2, 0.3, 0.25, 0.15, 0.1])[0]
-            chosen = self.rng.sample(kernel_ids, k=min(size, len(kernel_ids)))
+            size = int(self.rng.choice([1, 2, 3, 4, 5], p=[0.2, 0.3, 0.25, 0.15, 0.1]))
+            k = min(size, len(kernel_ids))
+            chosen = list(self.rng.choice(kernel_ids, size=k, replace=False))
             order = chosen.copy()
             self.rng.shuffle(order)
             try:
@@ -161,8 +161,8 @@ class CounterfactualEngine:
         kernel_ids = list(self.kernels.keys())
         catastrophic = 0
         for _ in range(samples):
-            size = self.rng.randint(1, min(5, len(kernel_ids)))
-            order = self.rng.sample(kernel_ids, k=size)
+            size = int(self.rng.integers(1, min(5, len(kernel_ids)) + 1))
+            order = list(self.rng.choice(kernel_ids, size=size, replace=False))
             self.rng.shuffle(order)
             try:
                 outs = [self.kernels[k].process(input_data) for k in order]
@@ -173,7 +173,8 @@ class CounterfactualEngine:
                 )
                 if world.violation_potential >= 0.8:
                     catastrophic += 1
-            except Exception:
+            except Exception as exc:
+                logger.debug("Failed to evaluate sample %s: %s", order, exc)
                 continue
         return catastrophic / samples if samples else 0.0
 
@@ -257,8 +258,10 @@ class CounterfactualEngine:
                         elif abs(v) > 1e6:
                             extreme_flag = True
                             logger.debug(f"Extreme value in output: {k}={v}")
+                        # Detect highly negative values as potential adversarial signals
                         elif v < -1e6:
                             extreme_flag = True
+                            logger.debug(f"Adversarial negative value in output: {k}={v}")
                     if k == "contradictory" and o.get("contradictory"):
                         contradiction_flag = True
 
@@ -283,11 +286,11 @@ class CounterfactualEngine:
         if len(world.outputs) >= 2 and contradiction_flag:
             score += 0.25
 
-        # Aggregate numerical flags with diminishing returns
+        # Aggregate numerical flags with significant penalties
         if nan_flag:
             score += 0.35
         if extreme_flag:
-            score += 0.15
+            score += 0.30  # Increased from 0.15 to ensure detection of adversarial values
 
         # Safety damping: average safety_score reduces risk modestly
         safety_scores = [o.get("safety_score") for o in world.outputs if isinstance(o, dict) and "safety_score" in o]

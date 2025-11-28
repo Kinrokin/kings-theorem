@@ -1,0 +1,4 @@
+# file: C:\KingsTheorem_v53\kings-theorem-v53\src\kernels\entropy_monitor.py
+# hypothesis_version: 6.148.2
+
+[0.0, 0.3, 1.0, 1000, 'entropy', 'flags', 'is_homogenized', 'kernel_id', 'sample_count', 'threshold']

@@ -1,0 +1,4 @@
+# file: C:\KingsTheorem_v53\kings-theorem-v53\src\governance\guardrail_v2.py
+# hypothesis_version: 6.148.2
+
+[0.0, 0.4, 0.5, 0.6, 0.7, 0.8, 0.85, 0.88, 0.9, 0.92, 0.95, 1.0, 10000, 55296, 57343, '*', '1.0.0', 'Mn', 'NFKC', 'allow', 'bypass', 'critical', 'dangerous', 'decision', 'decoded_variants', 'disregard', 'dump', 'en', 'evasion-001', 'exploit', 'fictional', 'forget', 'fraud', 'hack', 'harmful-001', 'hits', 'hypothetical', 'ignore', 'illegal', 'insider', 'jailbreak', 'jailbreak-001', 'kt-baseline-v1', 'locale', 'manipulate', 'manipulation-001', 'override', 'policy_version', 'ponzi', 'pretend', 'pump', 'risk_level', 'role', 'roleplay', 'rot_13', 'safe', 'scenario', 'scheme', 'score', 'suspicious', 'timestamp', 'utf-8', 'veto', 'weaponize']

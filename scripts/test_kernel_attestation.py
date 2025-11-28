@@ -1,3 +1,4 @@
+# ruff: noqa: E402
 """Test kernel attestation system."""
 
 from __future__ import annotations
@@ -8,19 +9,12 @@ from pathlib import Path
 # Add src to path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from src.governance.kernel_attestation import (  # noqa: E402
-    KernelAttestationRegistry,
-    verify_kernel_or_fail,
-)
+from src.governance.kernel_attestation import KernelAttestationRegistry, verify_kernel_or_fail  # noqa: E402
 
 
 def test_kernel_attestation() -> None:
     """Test kernel attestation and verification."""
-    from src.registry.kernel_registry import (  # noqa: E402
-        AmplifierKernel,
-        CompositionKernel,
-        RiskActionKernel,
-    )
+    from src.registry.kernel_registry import AmplifierKernel, CompositionKernel, RiskActionKernel  # noqa: E402
 
     print("🔐 Testing kernel attestation system...\n")
 
@@ -41,9 +35,7 @@ def test_kernel_attestation() -> None:
         ), f"Kernel not approved: {kernel_name}. Run: python scripts/attest_kernels.py"
 
         # Verify hash
-        assert registry.verify_kernel(
-            kernel_name, kernel_class
-        ), f"Kernel hash mismatch: {kernel_name}"
+        assert registry.verify_kernel(kernel_name, kernel_class), f"Kernel hash mismatch: {kernel_name}"
 
         print(f"✅ {kernel_name} verified")
 

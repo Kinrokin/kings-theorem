@@ -1,0 +1,60 @@
+name: KT Integrity Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test-integrity:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
+
+      # 1. THE CRITICAL CHECK: Dead Man's Switch must work
+      - name: "🛡️ Verify Dead Man's Switch"
+        run: |
+          pytest tests/test_safety_controls.py -v
+        continue-on-error: false
+
+      - name: Run Unit Tests
+        run: |
+          pytest tests/ -v --cov=src --cov-report=term-missing
+        continue-on-error: false
+
+      - name: Verify Closed-Loop Architecture (Dry Run)
+        run: |
+          python scripts/run_closed_loop_safe.py --dry-run --steps 1
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+
+      # Optional: Smoke test the industrial loop in dry-run for 1 epoch
+      - name: "🏗️ Dry Run Research Loop (Smoke Test)"
+        run: |
+          python scripts/run_research_loop.py --dry-run --steps 1
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+
+      - name: Run Full System Audit
+        run: |
+          python audit/full_system_audit.py
+        continue-on-error: false
+
+      - name: Upload Coverage Report
+        uses: codecov/codecov-action@v3
+        if: always()

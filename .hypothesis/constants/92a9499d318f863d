@@ -1,0 +1,4 @@
+# file: C:\KingsTheorem_v53\kings-theorem-v53\src\primitives\axiomatic_verifier.py
+# hypothesis_version: 6.148.2
+
+[0.0, 0.5, 5000, 'AxiomaticVerifier', 'axiom_profit', 'axiom_risk', 'profit', 'risk']

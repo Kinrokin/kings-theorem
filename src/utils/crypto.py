@@ -1,4 +1,4 @@
-﻿import base64
+import base64
 
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ed25519
@@ -18,7 +18,12 @@ def generate_keypair(name, key_dir="keys"):
         )
 
     with open(f"{key_dir}/{name}.pub", "wb") as f:
-        f.write(pub.public_bytes(encoding=serialization.Encoding.OpenSSH, format=serialization.PublicFormat.OpenSSH))
+        f.write(
+            pub.public_bytes(
+                encoding=serialization.Encoding.OpenSSH,
+                format=serialization.PublicFormat.OpenSSH,
+            )
+        )
 
 
 def verify_signature(pub_key_path, data: bytes, signature_b64: str) -> bool:

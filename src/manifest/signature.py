@@ -1,10 +1,11 @@
 # src/manifest/signature.py
 from __future__ import annotations
-import json
+
 import hashlib
 import hmac
+import json
 import logging
-from typing import Dict, Any, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 logger = logging.getLogger("kt.manifest.signature")
 logger.setLevel(logging.INFO)
@@ -12,16 +13,14 @@ logger.setLevel(logging.INFO)
 # Try Ed25519 via cryptography if available
 try:
     from cryptography.hazmat.primitives import serialization
-    from cryptography.hazmat.primitives.asymmetric.ed25519 import (
-        Ed25519PrivateKey,
-        Ed25519PublicKey,
-    )
+
     CRYPTO_ED_AVAILABLE = True
 except Exception:
     CRYPTO_ED_AVAILABLE = False
     logger.debug("cryptography Ed25519 not available; HMAC fallback will be used.")
 
 # ---------- Helpers ----------
+
 
 def canonical_payload(obj: Dict[str, Any]) -> bytes:
     """
@@ -30,10 +29,13 @@ def canonical_payload(obj: Dict[str, Any]) -> bytes:
     """
     return json.dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
 
+
 def sha256_hex(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
+
 # ---------- Ed25519 helpers (if cryptography available) ----------
+
 
 def sign_with_ed25519_pem(privkey_pem: bytes, payload: bytes) -> str:
     """
@@ -46,6 +48,7 @@ def sign_with_ed25519_pem(privkey_pem: bytes, payload: bytes) -> str:
     sig = priv.sign(payload)
     return sig.hex()
 
+
 def verify_with_ed25519_pem(pubkey_pem: bytes, payload: bytes, sig_hex: str) -> bool:
     if not CRYPTO_ED_AVAILABLE:
         raise RuntimeError("Ed25519 not available in this Python environment.")
@@ -56,16 +59,21 @@ def verify_with_ed25519_pem(pubkey_pem: bytes, payload: bytes, sig_hex: str) -> 
     except Exception:
         return False
 
+
 # ---------- HMAC fallback (dev only) ----------
+
 
 def sign_with_hmac(secret: bytes, payload: bytes) -> str:
     return hmac.new(secret, payload, hashlib.sha256).hexdigest()
+
 
 def verify_with_hmac(secret: bytes, payload: bytes, sig_hex: str) -> bool:
     expected = hmac.new(secret, payload, hashlib.sha256).hexdigest()
     return hmac.compare_digest(expected, sig_hex)
 
+
 # ---------- Manifest API ----------
+
 
 def sign_manifest(
     manifest: Dict[str, Any],
@@ -86,14 +94,25 @@ def sign_manifest(
 
     if CRYPTO_ED_AVAILABLE and privkey_pem is not None:
         sig = sign_with_ed25519_pem(privkey_pem, payload)
-        signed = {**payload_obj, "content_hash": content_hash, "signature": sig, "signed_by": "ed25519"}
+        signed = {
+            **payload_obj,
+            "content_hash": content_hash,
+            "signature": sig,
+            "signed_by": "ed25519",
+        }
         return signed
     elif hmac_secret is not None:
         sig = sign_with_hmac(hmac_secret, payload)
-        signed = {**payload_obj, "content_hash": content_hash, "signature": sig, "signed_by": "hmac"}
+        signed = {
+            **payload_obj,
+            "content_hash": content_hash,
+            "signature": sig,
+            "signed_by": "hmac",
+        }
         return signed
     else:
         raise RuntimeError("No signing method provided. Supply privkey_pem (ed25519) or hmac_secret (dev).")
+
 
 def verify_manifest(
     signed_manifest: Dict[str, Any],

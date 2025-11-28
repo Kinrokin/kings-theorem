@@ -1,10 +1,8 @@
-import os
-import tempfile
 import json
 from pathlib import Path
 
-from src.registry.ledger import RevocationLedger
 from src.registry.cli import verify_dir
+from src.registry.ledger import RevocationLedger
 
 
 def test_revocation_basic_toggle(tmp_path: Path):
@@ -16,7 +14,7 @@ def test_revocation_basic_toggle(tmp_path: Path):
     assert ledger.is_revoked("EVID-1") is False
 
     # Revoke
-    evt = ledger.revoke("EVID-1", reason="compromised", signed_by="ops")
+    ledger.revoke("EVID-1", reason="compromised", signed_by="ops")
     assert ledger.is_revoked("EVID-1") is True
     assert ledger.verify_chain() is True
 

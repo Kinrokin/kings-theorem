@@ -1,5 +1,6 @@
-﻿import hashlib
+import hashlib
 import json
+import logging
 import os
 import time
 from pathlib import Path
@@ -7,8 +8,11 @@ from pathlib import Path
 from src.ledger.merkle_tree import MerkleTree
 
 # import rfc3161ng # Uncomment in prod
+from src.primitives.exceptions import LedgerInvariantError
 from src.utils.crypto import verify_signature
 from src.utils.ocsf import wrap_ocsf_6003
+
+logger = logging.getLogger(__name__)
 
 
 def sha256b(b: bytes) -> str:
@@ -22,7 +26,13 @@ class LedgerError(Exception):
 
 
 class IntegrityLedger:
-    def __init__(self, store_dir=None, chain_file="chain.jsonl", keys_dir="keys", conf: dict = None):
+    def __init__(
+        self,
+        store_dir=None,
+        chain_file="chain.jsonl",
+        keys_dir="keys",
+        conf: dict = None,
+    ):
         base = Path(__file__).resolve().parent.parent.parent
         self.store_dir = str(Path(store_dir) if store_dir else (base / "src" / "ledger" / "store"))
         self.chain_path = str(Path(self.store_dir) / chain_file)
@@ -34,6 +44,10 @@ class IntegrityLedger:
 
         os.makedirs(self.store_dir, exist_ok=True)
         self.last_hash = self._read_tail_hash()
+        self._token_registry: set[str] = set()
+        self._token_hashes: set[str] = set()  # hash-based replay detection
+        self._sealed = False
+        self.token_staleness_seconds = 300  # 5 minutes max token age
 
     def _read_tail_hash(self) -> str:
         if not os.path.exists(self.chain_path):
@@ -48,18 +62,34 @@ class IntegrityLedger:
         try:
             obj = json.loads(last_line)
             return obj.get("hash", "0" * 64)
-        except Exception:
+        except Exception as exc:
+            logger.warning("Failed to parse ledger tail entry: %s", exc)
             return "0" * 64
 
-    def precommit_proposal(self, proposal_data):
+    def precommit_proposal(self, proposal_data, token_version: int = 1):
+        if self._sealed:
+            raise LedgerInvariantError("Cannot precommit to sealed ledger")
+
         # OCSF Wrap
         ocsf_event = wrap_ocsf_6003("PRECOMMIT", "Arbiter", "PENDING", "Proposal Escrowed", proposal_data)
         ocsf_event["prev_hash"] = self.last_hash
         ocsf_event["status"] = "ESCROWED"
         ocsf_event["ttl_sec"] = self.ttl_sec
+        ocsf_event["token_version"] = token_version
 
         payload_str = json.dumps(ocsf_event, sort_keys=True, separators=(",", ":"))
         token = sha256b(payload_str.encode())
+
+        if token in self._token_registry:
+            raise LedgerInvariantError(f"Token already exists: {token[:16]}...")
+
+        # Hash-based replay detection
+        token_hash = hashlib.sha256(f"{token}:{ocsf_event.get('time', 0)}".encode()).hexdigest()
+        if token_hash in self._token_hashes:
+            raise LedgerInvariantError(f"Token hash collision detected (replay attack): {token[:16]}...")
+
+        self._token_registry.add(token)
+        self._token_hashes.add(token_hash)
 
         wal_tmp = os.path.join(self.store_dir, f"{token}.precommit.tmp")
         wal_path = os.path.join(self.store_dir, f"{token}.precommit")
@@ -72,7 +102,14 @@ class IntegrityLedger:
         os.replace(wal_tmp, wal_path)
         return token
 
-    def finalize_proposal(self, token, signature=None, rationale=None, kid="operator.pub", signatures: list = None):
+    def finalize_proposal(
+        self,
+        token,
+        signature=None,
+        rationale=None,
+        kid="operator.pub",
+        signatures: list = None,
+    ):
         wal_path = os.path.join(self.store_dir, f"{token}.precommit")
         wal_finalizing = os.path.join(self.store_dir, f"{token}.finalizing")
 
@@ -86,8 +123,15 @@ class IntegrityLedger:
                 entry = json.load(f)
 
             # Check TTL (OCSF time is in ms)
-            if time.time() - (entry["time"] / 1000.0) > entry["ttl_sec"]:
+            proposal_age = time.time() - (entry["time"] / 1000.0)
+            if proposal_age > entry["ttl_sec"]:
                 raise LedgerError("TOKEN_EXPIRED", "TTL Exceeded")
+
+            # Check staleness for replay protection
+            if proposal_age > self.token_staleness_seconds:
+                raise LedgerInvariantError(
+                    f"Token expired: age {proposal_age:.1f}s exceeds {self.token_staleness_seconds}s"
+                )
 
             # If a list of signatures is provided, verify them individually
             auth_record = {}
@@ -109,15 +153,28 @@ class IntegrityLedger:
                         raise LedgerError("INVALID_SIGNATURE", f"Public key for {kid_entry} not found")
 
                     if not verify_signature(pub_key_path, token.encode(), sig_b64):
-                        raise LedgerError("INVALID_SIGNATURE", f"Crypto verification failed for {kid_entry}")
+                        raise LedgerError(
+                            "INVALID_SIGNATURE",
+                            f"Crypto verification failed for {kid_entry}",
+                        )
                     valid_keys.append(kid_entry)
 
-                auth_record = {"signatures": signatures, "rationale": rationale, "kids": valid_keys, "ts": time.time()}
+                auth_record = {
+                    "signatures": signatures,
+                    "rationale": rationale,
+                    "kids": valid_keys,
+                    "ts": time.time(),
+                }
             else:
                 pub_key_path = os.path.join(self.keys_dir, kid)
                 if not verify_signature(pub_key_path, token.encode(), signature):
                     raise LedgerError("INVALID_SIGNATURE", "Crypto verification failed")
-                auth_record = {"signature": signature, "rationale": rationale, "kid": kid, "ts": time.time()}
+                auth_record = {
+                    "signature": signature,
+                    "rationale": rationale,
+                    "kid": kid,
+                    "ts": time.time(),
+                }
 
             if entry["prev_hash"] != self.last_hash:
                 raise LedgerError("CHAIN_DIVERGENCE", "Tail moved during precommit")
@@ -161,7 +218,7 @@ class IntegrityLedger:
         mt = MerkleTree(leaves)
 
         # Mock TSA (RFC 3161)
-        tsr_token = "MOCK_TSR_TOKEN_RFC3161"
+        tsr_token = "MOCK_TSR_TOKEN_RFC3161"  # nosec B105 - demo token only
 
         block_event = wrap_ocsf_6003(
             "BLOCK_SEAL",
@@ -186,6 +243,9 @@ class IntegrityLedger:
         return block_event["hash"]
 
     def _append_to_chain(self, entry):
+        if self._sealed:
+            raise LedgerInvariantError("Cannot append to sealed ledger")
+
         tmp_append = os.path.join(self.store_dir, ".append.tmp")
         with open(tmp_append, "w", encoding="utf-8") as f:
             f.write(json.dumps(entry) + "\n")
@@ -198,6 +258,11 @@ class IntegrityLedger:
             os.fsync(f.fileno())
         os.remove(tmp_append)
 
+    def seal_ledger(self) -> None:
+        """Mark ledger as sealed; no further appends or modifications allowed."""
+        self._sealed = True
+        logger.info("[INTEGRITY_LEDGER] Sealed; no further commits permitted.")
+
     def sweep_expired(self):
         count = 0
         for f in os.listdir(self.store_dir):
@@ -209,6 +274,7 @@ class IntegrityLedger:
                     if time.time() - (e["time"] / 1000.0) > e.get("ttl_sec", 900):
                         os.remove(path)
                         count += 1
-                except Exception:
+                except Exception as exc:
+                    logger.warning("Failed to sweep precommit file %s: %s", path, exc)
                     continue
         return count

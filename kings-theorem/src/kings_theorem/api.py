@@ -1,12 +1,13 @@
-from fastapi import FastAPI, HTTPException, Depends, Request
-from fastapi.responses import PlainTextResponse
-from pydantic import BaseModel, Field
 import logging
 import os
 import time
 
-from .utils.logging import configure_logging
+from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi.responses import PlainTextResponse
+from pydantic import BaseModel, Field
+
 from .utils import metrics as metrics_mod
+from .utils.logging import configure_logging
 
 configure_logging()
 logger = logging.getLogger(__name__)
@@ -26,7 +27,7 @@ class GenerateResponse(BaseModel):
 app = FastAPI(
     title="Kings Theorem Inference API",
     version="v1.0.0",
-    description="Stateless and secure API serving the King's Theorem LLM."
+    description="Stateless and secure API serving the King's Theorem LLM.",
 )
 
 
@@ -64,7 +65,12 @@ async def add_metrics_and_logging(request: Request, call_next):
         path = request.url.path
         metrics_mod.increment("requests_total")
         metrics_mod.observe_latency(path, duration)
-        logger.info("request path=%s status=%s duration=%.3f", path, getattr(response, 'status_code', 'N/A'), duration)
+        logger.info(
+            "request path=%s status=%s duration=%.3f",
+            path,
+            getattr(response, "status_code", "N/A"),
+            duration,
+        )
 
 
 @app.post("/v1/generate", response_model=GenerateResponse, dependencies=[Depends(verify_auth)])
@@ -83,7 +89,7 @@ async def generate(req: GenerateRequest):
         token_count = len(out.split()) + len(req.prompt.split())
         metrics_mod.increment("requests_success")
         return GenerateResponse(output=out, token_count=token_count)
-    except Exception as e:
+    except Exception:
         logger.exception("Inference failed")
         metrics_mod.increment("requests_failed")
         raise HTTPException(status_code=500, detail="Model inference failed.")

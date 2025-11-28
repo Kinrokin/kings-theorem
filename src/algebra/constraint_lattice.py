@@ -134,8 +134,10 @@ class ConstraintLattice:
         new_expr = f"({c1.expression}) AND ({c2.expression})"
         new_domain = c1.domain if c1.domain == c2.domain else "composite"
         cid = canonical_hash({"meet": [c1.as_json(), c2.as_json()]})
-        assert new_type in self.hierarchy
-        assert 0.0 <= new_strength <= 1.0
+        if new_type not in self.hierarchy:
+            raise ValueError(f"Unknown constraint type during meet: {new_type}")
+        if not 0.0 <= new_strength <= 1.0:
+            raise ValueError(f"Constraint strength out of bounds: {new_strength}")
         return Constraint(
             id=cid,
             type=new_type,
@@ -153,8 +155,10 @@ class ConstraintLattice:
         new_expr = f"({c1.expression}) OR ({c2.expression})"
         new_domain = c1.domain if c1.domain == c2.domain else "composite"
         cid = canonical_hash({"join": [c1.as_json(), c2.as_json()]})
-        assert new_type in self.hierarchy
-        assert 0.0 <= new_strength <= 1.0
+        if new_type not in self.hierarchy:
+            raise ValueError(f"Unknown constraint type during join: {new_type}")
+        if not 0.0 <= new_strength <= 1.0:
+            raise ValueError(f"Constraint strength out of bounds: {new_strength}")
         return Constraint(
             id=cid,
             type=new_type,

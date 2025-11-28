@@ -1,8 +1,10 @@
-﻿"""
+"""
 AID: /src/primitives/risk_math.py
 Proof ID: PRF-RISK-001
 Axiom: Axiom 1 (CVaR), Axiom 4 (Rho)
 """
+
+from typing import Mapping
 
 import numpy as np
 
@@ -24,3 +26,18 @@ def calculate_intracluster_correlation(data: np.ndarray) -> float:
     if variance == 0:
         return 1.0
     return min(max(1.0 / (1.0 + variance), 0.0), 1.0)
+
+
+def aggregate_risk(components: Mapping[str, float], weights: Mapping[str, float]) -> float:
+    """Combine individual risk components via complement product.
+
+    Uses 1 - Π (1 - w_i * r_i) formulation, constraining each weighted component
+    to [0, 1] before multiplying. Result is also clamped to [0, 1].
+    """
+
+    prod = 1.0
+    for key, raw_risk in components.items():
+        weight = float(weights.get(key, 0.0))
+        effective = max(0.0, min(1.0, weight * float(raw_risk)))
+        prod *= 1.0 - effective
+    return max(0.0, min(1.0, 1.0 - prod))

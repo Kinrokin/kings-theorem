@@ -1,13 +1,19 @@
 # src/registry/cli.py
 from __future__ import annotations
+
 import argparse
-import sys
 import json
+import logging
 import os
-from typing import Optional, List
-from src.registry.ledger import RevocationLedger
-from src.manifest.signature import verify_manifest, CRYPTO_ED_AVAILABLE
+import sys
+from typing import Optional
+
+from src.manifest.signature import verify_manifest
 from src.metrics.metrics import record_manifest_verification
+from src.registry.ledger import RevocationLedger
+
+logger = logging.getLogger(__name__)
+
 
 def verify_dir(
     path: str,
@@ -36,6 +42,7 @@ def verify_dir(
         try:
             m = json.load(open(f, "r", encoding="utf-8"))
         except Exception as e:
+            logger.exception("Failed to read manifest %s", f)
             print(f"ERR reading {f}: {e}")
             failures.append((f, "read_error"))
             continue
@@ -44,7 +51,10 @@ def verify_dir(
         elif hmac_secret:
             ok, reason = verify_manifest(m, hmac_secret=hmac_secret.encode("utf-8"))
         else:
-            print("Error: supply --pubkey or --hmac-secret for registry verification", file=sys.stderr)
+            print(
+                "Error: supply --pubkey or --hmac-secret for registry verification",
+                file=sys.stderr,
+            )
             return 2
 
         # Optional: revocation check
@@ -60,18 +70,19 @@ def verify_dir(
             try:
                 record_manifest_verification(False)
             except Exception:
-                pass
+                logger.exception("Failed to record manifest verification failure for %s", f)
         else:
             print(f"OK   {f}: {reason}")
             try:
                 record_manifest_verification(True)
             except Exception:
-                pass
+                logger.exception("Failed to record manifest verification success for %s", f)
     if failures:
         print(f"Verification failed for {len(failures)} files")
         return 3
     print("All manifests verified.")
     return 0
+
 
 def build_parser():
     p = argparse.ArgumentParser("kt-registry")
@@ -80,6 +91,7 @@ def build_parser():
     p.add_argument("--hmac-secret", help="HMAC secret (dev only)")
     p.add_argument("--revocations", help="Path to JSONL revocation ledger (optional)")
     return p
+
 
 def main(argv=None):
     p = build_parser()
@@ -90,6 +102,7 @@ def main(argv=None):
         hmac_secret=args.hmac_secret,
         revocations_path=args.revocations,
     )
+
 
 if __name__ == "__main__":
     sys.exit(main())

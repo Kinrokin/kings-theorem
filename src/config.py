@@ -1,4 +1,4 @@
-﻿# Axiom 1
+# Axiom 1
 CVAR_ALPHA = 0.99999
 # Axiom 2
 E_PEAK_THRESHOLD = 50

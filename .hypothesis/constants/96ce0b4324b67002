@@ -1,0 +1,4 @@
+# file: C:\KingsTheorem_v53\kings-theorem-v53\src\algebra\composer.py
+# hypothesis_version: 6.148.2
+
+['?', 'COMPOSITION_CHECK', 'PERMISSIVE', 'and', 'atom', 'composable', 'compose_reason', 'composition_id', 'composition_proof', 'conclusion', 'constraints', 'not', 'or', 'proof_id', 'proposition', 'rule', 'status', 'step_compose_check', 'step_id', 'steps', 'timestamp']

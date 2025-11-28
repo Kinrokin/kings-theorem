@@ -1,0 +1,4 @@
+# file: C:\KingsTheorem_v53\kings-theorem-v53\src\proofs\proof_lang.py
+# hypothesis_version: 6.148.2
+
+['CONTRADICTORY', 'PENDING', 'PROVEN', 'REFUTED', 'kt.proofs']

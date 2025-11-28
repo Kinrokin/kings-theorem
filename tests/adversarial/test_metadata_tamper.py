@@ -1,7 +1,6 @@
 """
 Test metadata signing and tampering detection.
 """
-import pytest
 
 
 def test_metadata_tamper():
@@ -15,7 +14,7 @@ def test_metadata_tamper():
         type="ETHICAL",
         warrant_threshold=0.9,
         veto_power=5,
-        proof_burden="value_alignment"
+        proof_burden="value_alignment",
     )
     signed = sign_metadata(meta, hmac_secret=secret)
     assert verify_metadata(signed, hmac_secret=secret)
@@ -27,7 +26,7 @@ def test_metadata_tamper():
         warrant_threshold=signed.warrant_threshold,
         veto_power=10,  # TAMPERED
         proof_burden=signed.proof_burden,
-        signature=signed.signature
+        signature=signed.signature,
     )
     assert not verify_metadata(tampered, hmac_secret=secret)
 
@@ -42,7 +41,7 @@ def test_metadata_signature_missing():
         type="LOGICAL",
         warrant_threshold=0.5,
         veto_power=1,
-        proof_burden="formal"
+        proof_burden="formal",
     )
     # No signature
     assert not verify_metadata(meta, hmac_secret=secret)
@@ -58,7 +57,7 @@ def test_metadata_type_mutation():
         type="TEACHER",
         warrant_threshold=0.8,
         veto_power=3,
-        proof_burden="pedagogical"
+        proof_burden="pedagogical",
     )
     signed = sign_metadata(meta, hmac_secret=secret)
     assert verify_metadata(signed, hmac_secret=secret)
@@ -70,6 +69,6 @@ def test_metadata_type_mutation():
         warrant_threshold=signed.warrant_threshold,
         veto_power=signed.veto_power,
         proof_burden=signed.proof_burden,
-        signature=signed.signature
+        signature=signed.signature,
     )
     assert not verify_metadata(tampered, hmac_secret=secret)

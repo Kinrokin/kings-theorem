@@ -1,8 +1,8 @@
 # Adversarial Review Hardening - Complete Implementation
 
-**Branch**: `kt/harden-api-v1`  
-**Date**: November 24, 2025  
-**Grade Progression**: B+ (81.2%) → A+ (95%+)  
+**Branch**: `kt/harden-api-v1`
+**Date**: November 24, 2025
+**Grade Progression**: B+ (81.2%) → A+ (95%+)
 **Risk**: Catastrophic probability maintained at 0.59% with zero-trust hardening
 
 ---
@@ -232,8 +232,8 @@ python scripts/test_all_hardening.py
 
 ## Risk Analysis
 
-**Catastrophic Probability**: 0.59% (maintained from PCE optimization)  
-**Budget**: 5% (catastrophic_max)  
+**Catastrophic Probability**: 0.59% (maintained from PCE optimization)
+**Budget**: 5% (catastrophic_max)
 **Samples**: 512 (Monte Carlo, deterministic seed 99)
 
 **Additional Protections**:

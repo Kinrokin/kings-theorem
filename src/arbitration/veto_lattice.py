@@ -23,7 +23,11 @@ class VetoLattice:
         # Produce deterministic failure case for certain prefixes for testing
         failed = h.startswith("00")  # arbitrary deterministic condition; adjust for adversarial test
         if failed:
-            rec = {"invariant": "AGGREGATE_HARM_CHECK", "result": False, "reason": f"hash {h} triggers mock fail"}
+            rec = {
+                "invariant": "AGGREGATE_HARM_CHECK",
+                "result": False,
+                "reason": f"hash {h} triggers mock fail",
+            }
             self.veto_history.append(rec)
             return False
         self.veto_history.append({"invariant": "AGGREGATE_HARM_CHECK", "result": True, "reason": "ok"})

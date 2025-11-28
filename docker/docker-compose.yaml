@@ -12,7 +12,7 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
       - KT_API_KEY=kthitl_dev
-    
+
   # Generative Intelligence Layer: Ollama + Small Qwen Model
   ollama-qwen:
     image: ollama/ollama:latest
@@ -21,5 +21,5 @@ services:
     volumes:
       - ./ollama_models:/root/.ollama # Persist model downloads
     command: serve
-    # NOTE: Qwen model must be pre-pulled or pulled upon start. 
+    # NOTE: Qwen model must be pre-pulled or pulled upon start.
     # Use 'ollama pull qwen:7b' in the container shell after it starts.

@@ -1,0 +1,4 @@
+# file: C:\KingsTheorem_v53\kings-theorem-v53\src\logging_config.py
+# hypothesis_version: 6.148.2
+
+[1024, '%Y-%m-%d %H:%M:%S', 'DANGEROUS_TRADE', 'SACRIFICE_MINORITY', '\\b\\d{10,}\\b', 'kt.log', 'logs', 'utf-8']

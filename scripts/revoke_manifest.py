@@ -5,8 +5,10 @@ Usage (PowerShell):
   python -m scripts.revoke_manifest --id EVID-123 --reason compromised --signed-by operator.pub --ledger logs/revocations.jsonl
 """
 from __future__ import annotations
+
 import argparse
 import sys
+
 from src.registry.ledger import RevocationLedger
 
 
@@ -15,7 +17,11 @@ def build_parser():
     p.add_argument("--id", required=True, help="Evidence/Manifest ID to revoke")
     p.add_argument("--reason", required=True, help="Reason for revocation")
     p.add_argument("--signed-by", required=True, help="Signer identity (e.g., key id or operator)")
-    p.add_argument("--ledger", default="logs/revocations.jsonl", help="Path to revocation ledger JSONL")
+    p.add_argument(
+        "--ledger",
+        default="logs/revocations.jsonl",
+        help="Path to revocation ledger JSONL",
+    )
     return p
 
 

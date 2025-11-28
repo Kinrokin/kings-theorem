@@ -1,10 +1,13 @@
 # src/algebra/composer.py
 from __future__ import annotations
-from typing import List, Dict, Any
-import uuid
+
 import time
-from src.algebra.constraint_expr import canonical_serialize, simple_conflict_check, ConstraintExpr, Atom
-from src.proofs.proof_lang import ProofObject, ProofStep, ProofChecker, ConstraintRef
+import uuid
+from typing import Any, Dict, List
+
+from src.algebra.constraint_expr import Atom, canonical_serialize, simple_conflict_check
+from src.proofs.proof_lang import ConstraintRef, ProofChecker, ProofObject, ProofStep
+
 
 def compose_steps(steps: List[Dict[str, Any]]) -> Dict[str, Any]:
     """
@@ -52,7 +55,12 @@ def compose_steps(steps: List[Dict[str, Any]]) -> Dict[str, Any]:
     # Create a very small proof object (skeleton) that claims composability
     proof = ProofObject(proposition=f"composition:{composition_id}")
     # Add a single step claiming "composition_check"
-    step = ProofStep(step_id="step_compose_check", rule="COMPOSITION_CHECK", premises=[], conclusion=f"composable={str(composable)}")
+    step = ProofStep(
+        step_id="step_compose_check",
+        rule="COMPOSITION_CHECK",
+        premises=[],
+        conclusion=f"composable={str(composable)}",
+    )
     proof.steps.append(step)
     # required_invariants referencing the serialized exprs (as simple placeholder)
     for i, s in enumerate(serialized_exprs):
@@ -66,14 +74,20 @@ def compose_steps(steps: List[Dict[str, Any]]) -> Dict[str, Any]:
     manifest = {
         "composition_id": composition_id,
         "timestamp": time.time(),
-        "steps": [ { "step_id": s.get("step_id","?"), "constraints_serialized": serialized_exprs[i] if i < len(serialized_exprs) else None } for i,s in enumerate(steps)],
+        "steps": [
+            {
+                "step_id": s.get("step_id", "?"),
+                "constraints_serialized": serialized_exprs[i] if i < len(serialized_exprs) else None,
+            }
+            for i, s in enumerate(steps)
+        ],
         "composable": composable,
         "compose_reason": reason,
         "composition_proof": {
             "proof_id": proof.proof_id,
             "proposition": proof.proposition,
             "status": proof.status.name,
-            "steps": [ { "step_id": st.step_id, "rule": st.rule, "conclusion": st.conclusion } for st in proof.steps ]
-        }
+            "steps": [{"step_id": st.step_id, "rule": st.rule, "conclusion": st.conclusion} for st in proof.steps],
+        },
     }
     return manifest

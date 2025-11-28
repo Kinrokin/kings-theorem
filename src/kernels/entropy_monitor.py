@@ -4,9 +4,11 @@ Entropy and homogenization detection for kernel outputs.
 Prevents adversarial collapse to single "safe" point while concealing harmful content.
 """
 from __future__ import annotations
+
 import logging
 from collections import defaultdict
-from typing import Dict, List, Any, Optional
+from typing import Any, Dict, List, Optional
+
 import numpy as np
 
 logger = logging.getLogger("kt.kernels.entropy_monitor")
@@ -19,7 +21,12 @@ class EntropyMonitor:
     Tracks Shannon entropy over discretized output bins.
     """
 
-    def __init__(self, window_size: int = 1000, entropy_threshold: float = 0.3, num_bins: int = 10):
+    def __init__(
+        self,
+        window_size: int = 1000,
+        entropy_threshold: float = 0.3,
+        num_bins: int = 10,
+    ):
         """
         Args:
             window_size: Number of recent outputs to track per kernel

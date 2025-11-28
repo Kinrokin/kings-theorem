@@ -1,11 +1,14 @@
-﻿import hashlib
+"""Smoke tests for anomaly detection and Merkle proofs."""
+
+# ruff: noqa: E402
+import hashlib
 import os
 import sys
 
 import numpy as np
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from src.ledger.merkle_tree import MerkleTree, sha256
+from src.ledger.merkle_tree import MerkleTree
 from src.metrics.anomaly import detect_adaptive_replay_anomaly
 
 
@@ -14,13 +17,13 @@ def test_metrics():
     hist = np.random.randn(200)
     recent = np.random.randn(50) * 0.01
     combined = np.concatenate([hist, recent])
-    assert detect_adaptive_replay_anomaly(combined, short_win=50, long_win=200, threshold=3.0) == True
+    assert detect_adaptive_replay_anomaly(combined, short_win=50, long_win=200, threshold=3.0)
     print("PASS: Replay Anomaly (Variance Collapse)")
 
 
 def test_merkle():
     # Leaves must be the final hash strings for the MerkleTree class
-    leaves = [hashlib.sha256(l.encode()).hexdigest() for l in ["a", "b", "c", "d"]]
+    leaves = [hashlib.sha256(label.encode()).hexdigest() for label in ["a", "b", "c", "d"]]
     mt = MerkleTree(leaves)
 
     proof_c = mt.get_proof(2)  # Proof for 'c' (index 2)
@@ -31,7 +34,7 @@ def test_merkle():
 
     # Verification
     leaf_hash_c = leaves[2]
-    assert MerkleTree.verify(leaf_hash_c, proof_c, mt.root) == True
+    assert MerkleTree.verify(leaf_hash_c, proof_c, mt.root)
     print("PASS: Canonical Merkle Proof and Verification")
 
 

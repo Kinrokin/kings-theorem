@@ -38,7 +38,10 @@ def test_finalize_token_expired():
 
     sig1 = base64.b64encode(priv1.sign(token.encode())).decode("utf-8")
     sig2 = base64.b64encode(priv2.sign(token.encode())).decode("utf-8")
-    signatures = [{"key_id": "k1.pub", "signature": sig1}, {"key_id": "k2.pub", "signature": sig2}]
+    signatures = [
+        {"key_id": "k1.pub", "signature": sig1},
+        {"key_id": "k2.pub", "signature": sig2},
+    ]
 
     fin = broker.finalize_with_signatures(token, signatures, rationale="HUMAN_OK")
     assert fin["status"] == "ERROR"
@@ -74,7 +77,10 @@ def test_chain_divergence_detected():
 
     sig1 = base64.b64encode(priv1.sign(token.encode())).decode("utf-8")
     sig2 = base64.b64encode(priv2.sign(token.encode())).decode("utf-8")
-    signatures = [{"key_id": "k1.pub", "signature": sig1}, {"key_id": "k2.pub", "signature": sig2}]
+    signatures = [
+        {"key_id": "k1.pub", "signature": sig1},
+        {"key_id": "k2.pub", "signature": sig2},
+    ]
 
     fin = broker.finalize_with_signatures(token, signatures, rationale="HUMAN_OK")
     assert fin["status"] == "ERROR"

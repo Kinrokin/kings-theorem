@@ -1,0 +1,4 @@
+# file: C:\KingsTheorem_v53\kings-theorem-v53\src\api\llm_interface.py
+# hypothesis_version: 6.148.2
+
+[0.7, 120, 200, 4096, '/api/generate', 'OLLAMA_API', 'max_tokens', 'model', 'num_predict', 'options', 'prompt', 'qwen2.5:3b', 'response', 'stream', 'temperature']

@@ -1,4 +1,4 @@
-﻿"""
+"""
 AID: /src/primitives/exceptions.py
 Proof ID: PRF-SIT-001
 Axiom: Axiom 3 (Auditability)
@@ -18,6 +18,16 @@ class StandardizedInfeasibilityToken(Exception):
 class SecurityError(Exception):
     """Raised when a security or governance invariant is violated during
     runtime or instantiation of sensitive components.
+    """
+
+    pass
+
+
+class LedgerInvariantError(Exception):
+    """Raised when ledger state mutation violates formal invariants:
+    - Monotonicity (no removal of committed entries)
+    - Uniqueness (no duplicate problem IDs)
+    - Immutability (no in-place modification of finalized records)
     """
 
     pass

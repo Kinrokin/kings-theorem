@@ -1,0 +1,4 @@
+# file: C:\KingsTheorem_v53\kings-theorem-v53\src\proofs\dsl.py
+# hypothesis_version: 6.148.2
+
+[0.0, 1e-09, 0.75, '#', '&', '->', '<', '<=', '==', '>', '>=', 'FAIL', 'PASS', '__main__', 'all_pass', 'antecedents', 'body', 'certificate', 'cid', 'consequent', 'evidence', 'fairness', 'metric', 'status', 'theorem', 'theorems', 'tid', 'timestamp', 'traditions', 'val']

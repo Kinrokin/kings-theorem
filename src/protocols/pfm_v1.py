@@ -1,4 +1,4 @@
-﻿import numpy as np
+import numpy as np
 
 from src.primitives.risk_math import calculate_intracluster_correlation
 

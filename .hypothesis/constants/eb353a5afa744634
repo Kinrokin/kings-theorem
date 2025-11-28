@@ -1,0 +1,4 @@
+# file: C:\KingsTheorem_v53\kings-theorem-v53\src\utils\multisig.py
+# hypothesis_version: 6.148.2
+
+['.pem', '.pub', 'EXECUTE', 'FREEZE', 'HALT', 'OVERRIDE', 'key_id', 'signature']

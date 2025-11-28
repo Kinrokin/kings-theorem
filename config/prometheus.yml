@@ -1,0 +1,11 @@
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+
+scrape_configs:
+  - job_name: 'kt_research_lab'
+    static_configs:
+      - targets: ['kt_metrics:9100']
+        labels:
+          instance: 'kt_metrics_server'
+          environment: 'production'

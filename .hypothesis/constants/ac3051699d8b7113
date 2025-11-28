@@ -1,0 +1,4 @@
+# file: C:\KingsTheorem_v53\kings-theorem-v53\src\governance\decision_broker.py
+# hypothesis_version: 6.148.2
+
+[0.0, 0.5, 'COMMITTED', 'ERROR', 'ESCROWED', 'EXECUTE', 'HIGH_RISK', 'HUMAN_APPROVED', 'LOCKED', 'TIER-5', 'TIER_5_HALT', 'decision', 'governance', 'hash', 'keys', 'keys_dir', 'monotonicity', 'msg', 'proposal', 'rb', 'risk_score', 'status', 'tier', 'token', 'utf-8']

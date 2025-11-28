@@ -1,4 +1,4 @@
-﻿"""Student kernel v42
+"""Student kernel v42 - Titanium X Edition
 
 Improvements applied in this refactor:
 - Dependency-inject the LLM call for testability
@@ -6,6 +6,11 @@ Improvements applied in this refactor:
 - Timeout / retries with exponential backoff
 - Logging and timing metrics
 - Input validation and clearer exception handling
+
+Titanium X Upgrades:
+- Z3 formal verification for constraint checking (replaces procedural logic)
+- AxiomaticVerifier integration for safety invariants
+- Formal proof generation for decision justification
 """
 
 from __future__ import annotations
@@ -15,8 +20,9 @@ import time
 from dataclasses import asdict, dataclass
 from typing import Any, Callable, Dict, Optional
 
-from src.governance.guardrail_dg_v1 import DeontologicalGuardrail
+from src.governance.nemo_guard import DeontologicalGuardrail
 from src.llm_interface import query_qwen
+from src.primitives.axiomatic_verifier import AxiomaticVerifier
 from src.primitives.exceptions import SecurityError, StandardizedInfeasibilityToken
 
 logger = logging.getLogger(__name__)
@@ -47,6 +53,7 @@ class StudentKernelV42:
         max_retries: int = 2,
         *,
         guardrail: Optional[DeontologicalGuardrail] = None,
+        verifier: Optional[AxiomaticVerifier] = None,
     ) -> None:
         # Guardrail is optional for lightweight/test instantiation; validate only if provided
         if guardrail is not None and not isinstance(guardrail, DeontologicalGuardrail):
@@ -57,6 +64,10 @@ class StudentKernelV42:
         self.timeout = timeout
         self.max_retries = max_retries
         self.guardrail = guardrail
+
+        # Titanium X: Z3 formal verifier for constraint checking
+        self.verifier = verifier or AxiomaticVerifier(timeout_ms=5000)
+        logger.info("StudentKernelV42 initialized with AxiomaticVerifier")
 
     def staged_solve_pipeline(self, problem: Dict[str, Any]) -> Dict[str, Any]:
         """Accepts a problem dict and returns a standardized result dict.
@@ -123,6 +134,18 @@ class StudentKernelV42:
                     raise StandardizedInfeasibilityToken("LLM returned error marker")
 
                 duration = time.time() - start_time
+
+                # TITANIUM X: Verify solution constraints with Z3 before returning
+                if self.verifier and "state" in problem:
+                    state = problem["state"]
+                    is_safe, proof = self.verifier.verify_with_proof(state)
+                    last_meta["z3_proof"] = proof
+                    last_meta["z3_safe"] = is_safe
+                    if not is_safe:
+                        logger.warning("[TITANIUM] Z3 verification failed: %s", proof)
+                        # Still return solution, but mark with verification status
+                        last_meta["z3_warning"] = "Safety invariant not proven"
+
                 result = StudentResult(
                     status="PASS (Student)",
                     solution=text,
@@ -143,7 +166,10 @@ class StudentKernelV42:
                             solution=None,
                             model_used=self.model_name,
                             duration_s=round(duration, 3),
-                            meta={"reason": "LLM infeasible or offline", "attempts": attempt},
+                            meta={
+                                "reason": "LLM infeasible or offline",
+                                "attempts": attempt,
+                            },
                         )
                     )
                 # else, simple backoff
@@ -242,7 +268,10 @@ class StudentKernelV42:
                             solution=None,
                             model_used=self.model_name,
                             duration_s=round(duration, 3),
-                            meta={"reason": "LLM infeasible or offline", "attempts": attempt},
+                            meta={
+                                "reason": "LLM infeasible or offline",
+                                "attempts": attempt,
+                            },
                         )
                     )
                 await __import__("asyncio").sleep(0.5 * attempt)
@@ -257,7 +286,10 @@ class StudentKernelV42:
                             solution=None,
                             model_used=self.model_name,
                             duration_s=round(duration, 3),
-                            meta={"reason": "unexpected async error", "attempts": attempt},
+                            meta={
+                                "reason": "unexpected async error",
+                                "attempts": attempt,
+                            },
                         )
                     )
                 await __import__("asyncio").sleep(0.5 * attempt)

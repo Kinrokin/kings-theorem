@@ -1,5 +1,3 @@
-import pytest
-
 from src.algebra.constraint_lattice import Constraint, ConstraintLattice, ConstraintType
 from src.reasoning.counterfactual_engine import CounterfactualEngine
 from src.reasoning.proof_system import ProofChecker, ProofObject, ProofStatus
@@ -9,7 +7,13 @@ def test_counterfactual_fatal_on_axiomatic_contradiction():
     L = ConstraintLattice()
     # create contradictory constraints: a == not (b)
     a = Constraint(id="a", type=ConstraintType.SAFETY, expression="x > 0", strength=0.9, domain="d")
-    b = Constraint(id="b", type=ConstraintType.OPERATIONAL, expression="not (x > 0)", strength=0.8, domain="d")
+    b = Constraint(
+        id="b",
+        type=ConstraintType.OPERATIONAL,
+        expression="not (x > 0)",
+        strength=0.8,
+        domain="d",
+    )
     engine = CounterfactualEngine(L)
     world = engine._evaluate_composition_path(["A", "B"], {a, b})
     assert world.violation_potential == 1.0
@@ -18,7 +22,13 @@ def test_counterfactual_fatal_on_axiomatic_contradiction():
 
 def test_counterfactual_heuristic_risk():
     L = ConstraintLattice()
-    c = Constraint(id="c", type=ConstraintType.OPERATIONAL, expression="(optimize x)", strength=0.4, domain="d")
+    c = Constraint(
+        id="c",
+        type=ConstraintType.OPERATIONAL,
+        expression="(optimize x)",
+        strength=0.4,
+        domain="d",
+    )
     engine = CounterfactualEngine(L)
     # path length 3, last element indicates RISK_ACTION, no safety constraint
     world = engine._evaluate_composition_path(["step1", "step2", "RISK_ACTION_xyz"], {c})

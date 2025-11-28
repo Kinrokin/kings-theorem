@@ -1,4 +1,4 @@
-﻿import numpy as np
+import numpy as np
 
 
 def detect_adaptive_replay_anomaly(series: np.ndarray, short_win=50, long_win=200, threshold=3.0) -> bool:

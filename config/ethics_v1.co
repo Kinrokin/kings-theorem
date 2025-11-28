@@ -1,0 +1,10 @@
+define user ask about sacrifice
+  "Should we sacrifice the minority?"
+  "maximize profit at all costs"
+
+define bot refuse
+  "I cannot process that request. It violates Axiom 6."
+
+define flow ethics_check
+  user ask about sacrifice
+  bot refuse

@@ -2,14 +2,39 @@
 AID: /src/governance/guardrail_dg_v1.py
 Proof ID: PRF-DG-002-REGEX
 Axiom: Axiom 6: Ethical Governance (Advanced)
+
+Level 4 Enhancement: Dual-Layer Guardrail (Symbolic + Semantic)
+- Symbolic Layer: Regex patterns + fuzzy matching (deterministic, rule-based)
+- Semantic Layer: Embedding-based intent detection (probabilistic, meaning-aware)
+- Both layers logged to cryptographic ledger for full audit trail
 """
 
 import logging
+import os
 import re
 from difflib import SequenceMatcher
-from typing import Tuple
+from typing import Any, Dict, List, Tuple
 
 logger = logging.getLogger(__name__)
+
+# Lazy import semantic guard (optional dependency)
+_semantic_guard = None
+ENABLE_SEMANTIC_LAYER = os.getenv("ENABLE_SEMANTIC_EMBEDDINGS", "false").lower() in ("true", "1", "yes")
+
+
+def _get_semantic_guard():
+    """Lazy-load semantic guard to avoid circular imports and allow feature flag control."""
+    global _semantic_guard
+    if _semantic_guard is None and ENABLE_SEMANTIC_LAYER:
+        try:
+            from governance.semantic_guard import get_semantic_guard
+
+            _semantic_guard = get_semantic_guard()
+            logger.info("Semantic guard layer activated (dual-layer mode)")
+        except Exception as e:
+            logger.warning("Semantic guard unavailable: %s. Using symbolic-only mode.", e)
+            _semantic_guard = False  # Mark as attempted but failed
+    return _semantic_guard if _semantic_guard is not False else None
 
 
 class DeontologicalGuardrail:
@@ -38,7 +63,11 @@ class DeontologicalGuardrail:
 
     def validate_content(self, text: str) -> Tuple[bool, str]:
         """
-        Scans generated text for Axiom violations using Regex.
+        Scans generated text for Axiom violations using Dual-Layer Guardrail.
+
+        Layer 1 (Symbolic): Regex patterns + fuzzy keyword matching (deterministic)
+        Layer 2 (Semantic): Embedding-based intent detection (probabilistic)
+
         Returns: (Passed: bool, Reason: str)
         """
         if not text:
@@ -46,6 +75,42 @@ class DeontologicalGuardrail:
 
         text_lower = text.lower()
 
+        # Layer 2: Semantic Neural Guard (if enabled)
+        semantic_guard = _get_semantic_guard()
+        neural_hits: List[Dict[str, Any]] = []
+        if semantic_guard:
+            try:
+                result = semantic_guard.assess(text)
+                if result.is_blocked:
+                    reason = f"Axiom 6 Violation (Semantic Layer): {result.reason}"
+                    logger.warning("[GUARDRAIL] SEMANTIC VETO: %s", reason)
+                    neural_hits.append(
+                        {
+                            "layer": "semantic",
+                            "blocked": True,
+                            "reason": result.reason,
+                            "semantic_score": result.semantic_score,
+                            "fuzzy_score": result.fuzzy_score,
+                            "anchor_match": result.anchor_match,
+                            "mode_degraded": result.mode_degraded,
+                        }
+                    )
+                    return (False, reason)
+                else:
+                    # Record telemetry even if passed (for auditing)
+                    neural_hits.append(
+                        {
+                            "layer": "semantic",
+                            "blocked": False,
+                            "semantic_score": result.semantic_score,
+                            "fuzzy_score": result.fuzzy_score,
+                            "mode_degraded": result.mode_degraded,
+                        }
+                    )
+            except Exception as e:
+                logger.warning("[GUARDRAIL] Semantic layer error: %s. Falling back to symbolic only.", e)
+
+        # Layer 1: Symbolic Regex Patterns
         for pattern in self.forbidden_patterns:
             m = re.search(pattern, text_lower)
             if m:
@@ -54,8 +119,8 @@ class DeontologicalGuardrail:
                 concept = re.sub(r"\\[A-Za-z]", "", pattern)  # remove escaped tokens like \W, \s
                 concept = re.sub(r"[\[\]\-\_\.\?\s\*]", "", concept)
                 concept = re.sub(r"[^a-zA-Z]", "", concept).lower()
-                reason = f"Axiom 6 Violation: Detected pattern '{pattern}' matched '{matched}' (concept='{concept}')"
-                logger.warning("[GUARDRAIL] VETO: %s", reason)
+                reason = f"Axiom 6 Violation (Symbolic Layer): Detected pattern '{pattern}' matched '{matched}' (concept='{concept}')"
+                logger.warning("[GUARDRAIL] REGEX VETO: %s", reason)
                 return (False, reason)
 
         # Fuzzy fallback for obfuscated or misspelled keywords
@@ -74,10 +139,13 @@ class DeontologicalGuardrail:
                         best_score = score
                         best_kw = k
                         matched_sub = window
-            reason = f"Axiom 6 Violation: Fuzzy-detected concept '{best_kw}' matched '{matched_sub}' (score={best_score:.2f})"
-            logger.warning("[GUARDRAIL] VETO: %s", reason)
+            reason = f"Axiom 6 Violation (Fuzzy Layer): Fuzzy-detected concept '{best_kw}' matched '{matched_sub}' (score={best_score:.2f})"
+            logger.warning("[GUARDRAIL] FUZZY VETO: %s", reason)
             return (False, reason)
 
+        # All layers passed
+        if neural_hits:
+            logger.debug("[GUARDRAIL] Passed dual-layer validation. Neural telemetry: %s", neural_hits)
         return (True, "Clean")
 
     def validate(self, solution: dict) -> bool:

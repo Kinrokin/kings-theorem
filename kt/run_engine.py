@@ -33,12 +33,25 @@ def main():
     engine = KTEngine()
     problem = sample_problem()
     result = engine.execute(problem)
+<<<<<<< Updated upstream
+=======
+    risk = result.get("risk", {})
+>>>>>>> Stashed changes
     summary = {
         "status": result.get("status"),
         "decision": result.get("governance", {}).get("decision"),
         "trace_valid": result.get("trace_valid"),
         "lattice_ok": result.get("lattice_ok"),
         "rationale": result.get("rationale"),
+<<<<<<< Updated upstream
+=======
+        "risk": {
+            "tier": risk.get("tier", "LOW"),
+            "aggregate": risk.get("aggregate", 0.0),
+            "components": risk.get("components", {}),
+        },
+        "trace_preview": result.get("trace", [])[:5],
+>>>>>>> Stashed changes
     }
     print(json.dumps(summary, indent=2))
 

@@ -1,0 +1,9 @@
+{
+  "level": 1,
+  "epoch": 1,
+  "best_metric": 0.85,
+  "safety_violations": 0,
+  "crash_counter": 0,
+  "last_update_ts": 1764295680.4504185,
+  "notes": "Promoted to Level 1"
+}

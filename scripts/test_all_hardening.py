@@ -11,17 +11,18 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 def test_federation_attestation() -> None:
     """Test federation source attestation."""
-    from src.federation.source_attestation import (  # noqa: E402
-        FederationAttestationRegistry,
-        verify_source_or_fail,
-    )
+    from src.federation.source_attestation import FederationAttestationRegistry, verify_source_or_fail  # noqa: E402
 
     print("🔐 Testing federation source attestation...\n")
 
     registry = FederationAttestationRegistry()
 
     # Verify approved sources exist
-    approved_sources = ["axiom_utility_maximization", "axiom_categorical_imperative", "theological_golden_rule"]
+    approved_sources = [
+        "axiom_utility_maximization",
+        "axiom_categorical_imperative",
+        "theological_golden_rule",
+    ]
 
     for source_id in approved_sources:
         assert registry.is_source_approved(source_id), f"Source not approved: {source_id}"
@@ -60,13 +61,23 @@ def test_manifold_pre_gate() -> None:
     projector = ManifoldProjector(manifold)
 
     # Test inside manifold
-    inside_vector = {"fairness": 0.5, "non_maleficence": 0.5, "autonomy": 0.5, "truth": 0.5}
+    inside_vector = {
+        "fairness": 0.5,
+        "non_maleficence": 0.5,
+        "autonomy": 0.5,
+        "truth": 0.5,
+    }
     projected, inside = projector.project(inside_vector)
     assert inside, "Vector inside manifold should pass"
     print("✅ Inside vector passed projection")
 
     # Test outside manifold (would trigger pre-gate veto)
-    outside_vector = {"fairness": 1.5, "non_maleficence": -0.5, "autonomy": 0.5, "truth": 0.5}
+    outside_vector = {
+        "fairness": 1.5,
+        "non_maleficence": -0.5,
+        "autonomy": 0.5,
+        "truth": 0.5,
+    }
     projected, inside = projector.project(outside_vector)
     assert not inside, "Vector outside manifold should be projected"
     print("✅ Outside vector projected (would trigger pre-gate veto)")

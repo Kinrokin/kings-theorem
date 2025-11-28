@@ -1,13 +1,12 @@
 """
 Test timing attack defenses and timeout enforcement.
 """
-import pytest
 import time
 
 
 def test_timing_defense_within_timeout():
     """Test that functions within timeout execute normally."""
-    from src.governance.timing_defense import TimingDefense, TimingConfig
+    from src.governance.timing_defense import TimingConfig, TimingDefense
 
     config = TimingConfig(default_timeout=1.0)
     defense = TimingDefense(config)
@@ -27,7 +26,7 @@ def test_timing_defense_within_timeout():
 
 def test_timing_defense_timeout_detection():
     """Test that timeouts are detected."""
-    from src.governance.timing_defense import TimingDefense, TimingConfig
+    from src.governance.timing_defense import TimingConfig, TimingDefense
 
     config = TimingConfig(default_timeout=0.2)
     defense = TimingDefense(config)
@@ -47,11 +46,9 @@ def test_timing_defense_timeout_detection():
 
 def test_timing_defense_blacklist():
     """Test that repeated timeouts trigger blacklisting."""
-    from src.governance.timing_defense import TimingDefense, TimingConfig, TimeoutStrategy
+    from src.governance.timing_defense import TimeoutStrategy, TimingConfig, TimingDefense
 
-    config = TimingConfig(
-        default_timeout=0.1, strategy=TimeoutStrategy.BLACKLIST, blacklist_threshold=3
-    )
+    config = TimingConfig(default_timeout=0.1, strategy=TimeoutStrategy.BLACKLIST, blacklist_threshold=3)
     defense = TimingDefense(config)
 
     def slow_func():
@@ -74,7 +71,7 @@ def test_timing_defense_blacklist():
 
 def test_timing_defense_reset_on_success():
     """Test that consecutive timeout counter resets on success."""
-    from src.governance.timing_defense import TimingDefense, TimingConfig
+    from src.governance.timing_defense import TimingConfig, TimingDefense
 
     config = TimingConfig(default_timeout=0.2)
     defense = TimingDefense(config)
@@ -121,7 +118,7 @@ def test_deterministic_tiebreaker():
 
 def test_timing_stats_tracking():
     """Test that timing statistics are accurately tracked."""
-    from src.governance.timing_defense import TimingDefense, TimingConfig
+    from src.governance.timing_defense import TimingConfig, TimingDefense
 
     config = TimingConfig(default_timeout=1.0)
     defense = TimingDefense(config)
@@ -143,11 +140,9 @@ def test_timing_stats_tracking():
 
 def test_unblacklist():
     """Test manual unblacklisting of kernels."""
-    from src.governance.timing_defense import TimingDefense, TimingConfig, TimeoutStrategy
+    from src.governance.timing_defense import TimeoutStrategy, TimingConfig, TimingDefense
 
-    config = TimingConfig(
-        default_timeout=0.1, strategy=TimeoutStrategy.BLACKLIST, blacklist_threshold=2
-    )
+    config = TimingConfig(default_timeout=0.1, strategy=TimeoutStrategy.BLACKLIST, blacklist_threshold=2)
     defense = TimingDefense(config)
 
     def slow_func():

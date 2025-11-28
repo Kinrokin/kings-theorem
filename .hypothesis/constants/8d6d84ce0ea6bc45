@@ -1,0 +1,4 @@
+# file: C:\KingsTheorem_v53\kings-theorem-v53\src\governance\verification.py
+# hypothesis_version: 6.148.2
+
+['COMMITTED', 'DROP', 'ESCROWED', 'EXECUTE', 'FREEZE', 'HALT', 'HALT_TRACE', 'PASS', 'PASS (STUDENT)', 'SOLVED', 'TIER_5_HALT', 'VETO', 'data', 'phase', 'status', 'type']
