@@ -4,127 +4,287 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KT Mission Control</title>
+    <title>KT Control Tower</title>
     <link rel="stylesheet" href="{{ url_for('static', path='control_styles.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 
 <body>
-    <div class="container">
-        <h1>🏯 King's Theorem: Mission Control</h1>
-        <div class="subtitle">Human Sovereignty Interface — Titanium X Protocol</div>
 
-        <!-- System Status Panel -->
-        <div class="status-box">
-            <h2>🔍 System Status</h2>
+    <div class="sidebar">
+        <div class="brand">KING'S THEOREM</div>
+        <div class="nav-item active" onclick="switchTab('dashboard')">
+            <span>📊</span> Dashboard
+        </div>
+        <div class="nav-item" onclick="switchTab('chat')">
+            <span>💬</span> Interact with KT
+        </div>
+        <div class="nav-item" onclick="window.open('http://localhost:3000', '_blank')">
+            <span>📈</span> Grafana Metrics
+        </div>
+    </div>
 
-            <div class="status-grid">
-                <div class="status-item">
-                    <label>Current Level</label>
-                    <strong>Level {{ level }}</strong>
+    <div class="main-content">
+
+        <div id="view-dashboard" class="view-section active">
+            <h2 class="section-title">System Status</h2>
+
+            <div class="metrics-grid">
+                <div class="card">
+                    <div class="metric-label">Current Level</div>
+                    <div class="metric-value">{{ level }}</div>
                 </div>
-
-                <div class="status-item">
-                    <label>Current Epoch</label>
-                    <strong>{{ epoch }}</strong>
+                <div class="card">
+                    <div class="metric-label">Epoch</div>
+                    <div class="metric-value">{{ epoch }}</div>
                 </div>
-
-                <div class="status-item">
-                    <label>Best Accuracy</label>
-                    <strong>{{ "%.3f"|format(best_metric) }}</strong>
+                <div class="card">
+                    <div class="metric-label">Safety Violations</div>
+                    <div class="metric-value metric-value-warning">{{ safety_violations }}</div>
                 </div>
-
-                <div class="status-item">
-                    <label>Safety Violations</label>
-                    <strong>{{ safety_violations }}</strong>
-                </div>
-
-                <div class="status-item">
-                    <label>Crash Counter</label>
-                    <strong>{{ crash_counter }}</strong>
+                <div class="card">
+                    <div class="metric-label">Status</div>
+                    <div class="status-badge-container">
+                        {% if paused %} <span class="status-badge status-paused">PAUSED</span>
+                        {% elif stopped %} <span class="status-badge status-stopped">STOPPED</span>
+                        {% else %} <span class="status-badge status-running">RUNNING</span>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
 
-            <div class="engine-state">
-                <label class="muted-999">Engine State:</label>
+            <h3>Manual Overrides</h3>
+            <div class="control-bar">
                 {% if paused %}
-                <span class="status-badge status-paused pulse">⏸ PAUSED</span>
-                {% elif stopped %}
-                <span class="status-badge status-stopping pulse">🛑 STOPPING</span>
-                {% elif system_status == "Running" %}
-                <span class="status-badge status-running">▶ RUNNING</span>
+                <button onclick="sendAction('RESUME')" class="btn-ctrl btn-resume">▶ RESUME LOOP</button>
                 {% else %}
-                <span class="status-badge status-offline">⚫ {{ system_status }}</span>
+                <button onclick="sendAction('PAUSE')" class="btn-ctrl btn-pause">⏸ PAUSE LOOP</button>
                 {% endif %}
+                <button onclick="sendAction('STOP')" class="btn-ctrl btn-stop">🛑 EMERGENCY STOP</button>
             </div>
-        </div>
-
-        <!-- Control Panel -->
-        <div class="status-box">
-            <h2>🎮 Control Panel</h2>
-
-            <div class="controls">
-                <form action="/action" method="post" class="inline-form">
-                    {% if paused %}
-                    <button type="submit" name="command" value="RESUME" class="btn btn-resume">▶ RESUME LOOP</button>
-                    {% else %}
-                    <button type="submit" name="command" value="PAUSE" class="btn btn-pause">⏸ PAUSE LOOP</button>
-                    {% endif %}
-                </form>
-
-                <form action="/action" method="post" class="inline-form">
-                    <button type="submit" name="command" value="STOP" class="btn btn-stop"
-                        onclick="return confirm('⚠️ This will trigger a graceful shutdown. Are you sure?')">
-                        🛑 EMERGENCY STOP
-                    </button>
-                </form>
-            </div>
-        </div>
-
-        <!-- Governance Gate Panel -->
-        <div class="status-box governance-box">
-            <h3>🔐 Governance Gate (Axiom 5: Human Sovereignty)</h3>
 
             {% if next_level_locked %}
-            <div class="locked-indicator">
-                <strong>🔒 Level {{ next_level }} is LOCKED</strong>
-                <p class="mt-10 muted-ccc">
-                    The system has reached promotion threshold but requires human authorization to advance.
-                    This prevents unauthorized capability jumps.
-                </p>
-            </div>
-
-            <form action="/action" method="post">
-                <input type="hidden" name="level" value="{{ next_level }}">
-                <button type="submit" name="command" value="UNLOCK" class="btn btn-unlock"
-                    onclick="return confirm('⚠️ Authorize Level {{ next_level }} promotion?')">
-                    🔓 AUTHORIZE LEVEL {{ next_level }}
-                </button>
-            </form>
-            {% else %}
-            <div class="unlocked-indicator">
-                <strong>✅ Level {{ next_level }} is AUTHORIZED</strong>
-                <p class="mt-10 muted-ccc">
-                    The system may promote to Level {{ next_level }} when accuracy threshold is met.
-                </p>
+            <div class="card governance-gate-card">
+                <div class="metric-label">Governance Gate</div>
+                <p>Promotion to Level {{ next_level }} is currently LOCKED.</p>
+                <button onclick="sendAction('UNLOCK', {{ next_level }})" class="btn-ctrl btn-unlock">🔓 AUTHORIZE LEVEL
+                    {{ next_level }}</button>
             </div>
             {% endif %}
         </div>
 
-        <!-- Footer -->
-        <footer>
-            <p>King's Theorem v53 — Titanium X Protocol Edition</p>
-            <p class="footer-subtext">
-                Formal Verification • Cryptographic Integrity • Human Sovereignty
-            </p>
-        </footer>
+        <div id="view-chat" class="view-section">
+            <h2 class="section-title">Council Uplink</h2>
+            <div class="chat-container">
+                <div id="chat-history" class="chat-history">
+                    <div class="msg msg-kt">System Online. Connected to Council Router. Select a persona to begin.</div>
+                </div>
+                <div class="chat-input-area">
+                    <select id="role-select" title="Select Council Role" aria-label="Select Council Role">
+                        <option value="architect">Architect (Design)</option>
+                        <option value="critic">Critic (Audit)</option>
+                        <option value="ops">Ops (System)</option>
+                        <option value="crucible">Crucible (Labs)</option>
+                    </select>
+                    <input type="text" id="chat-input" placeholder="Type your query..." onkeypress="handleEnter(event)">
+                    <button class="btn-send" onclick="sendMessage()">SEND</button>
+                </div>
+            </div>
+        </div>
+
     </div>
 
-    <!-- Auto-refresh every 5 seconds -->
     <script>
-        setTimeout(function () {
+        // TABS
+        function switchTab(tabName) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+            document.getElementById('view-' + tabName).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        // ACTIONS (Pause/Stop)
+        async function sendAction(command, level = 0) {
+            const formData = new FormData();
+            formData.append('command', command);
+            formData.append('level', level);
+            await fetch('/action', { method: 'POST', body: formData });
             window.location.reload();
-        }, 5000);
+        }
+
+        // CHAT LOGIC
+        function handleEnter(e) { if (e.key === 'Enter') sendMessage(); }
+
+        async function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const role = document.getElementById('role-select').value;
+            const history = document.getElementById('chat-history');
+            const text = input.value.trim();
+            if (!text) return;
+
+            // 1. User Message
+            history.innerHTML += `<div class="msg msg-user">${escapeHtml(text)}</div>`;
+            input.value = '';
+            history.scrollTop = history.scrollHeight;
+
+            // 2. Loading State
+            const loadingId = 'loading-' + Date.now();
+            history.innerHTML += `<div id="${loadingId}" class="msg msg-kt">...</div>`;
+
+            // 3. API Call
+            try {
+                const res = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: text, mode: role })
+                });
+                const data = await res.json();
+
+                // 4. Render Markdown Response
+                document.getElementById(loadingId).innerHTML = marked.parse(data.answer);
+
+                // Optional: Show Governance Report
+                if (data.governance) {
+                    const govHtml = `<div style="font-size:0.8em; opacity:0.7; margin-top:5px; border-top:1px solid #444; padding-top:5px;">
+                        🛡️ Safety: ${data.governance.safety_violations_prevented ? 'Active' : 'Pass'} | 
+                        🔍 Paradoxes: ${data.governance.paradoxes_detected}
+                    </div>`;
+                    document.getElementById(loadingId).innerHTML += govHtml;
+                }
+
+            } catch (err) {
+                document.getElementById(loadingId).innerText = "Error connecting to Council.";
+            }
+            history.scrollTop = history.scrollHeight;
+        }
+
+        // HTML escape utility
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
     </script>
+</body>
+
+</html>
+<div class="container">
+    <h1>🏯 King's Theorem: Mission Control</h1>
+    <div class="subtitle">Human Sovereignty Interface — Titanium X Protocol</div>
+
+    <!-- System Status Panel -->
+    <div class="status-box">
+        <h2>🔍 System Status</h2>
+
+        <div class="status-grid">
+            <div class="status-item">
+                <label>Current Level</label>
+                <strong>Level {{ level }}</strong>
+            </div>
+
+            <div class="status-item">
+                <label>Current Epoch</label>
+                <strong>{{ epoch }}</strong>
+            </div>
+
+            <div class="status-item">
+                <label>Best Accuracy</label>
+                <strong>{{ "%.3f"|format(best_metric) }}</strong>
+            </div>
+
+            <div class="status-item">
+                <label>Safety Violations</label>
+                <strong>{{ safety_violations }}</strong>
+            </div>
+
+            <div class="status-item">
+                <label>Crash Counter</label>
+                <strong>{{ crash_counter }}</strong>
+            </div>
+        </div>
+
+        <div class="engine-state">
+            <label class="muted-999">Engine State:</label>
+            {% if paused %}
+            <span class="status-badge status-paused pulse">⏸ PAUSED</span>
+            {% elif stopped %}
+            <span class="status-badge status-stopping pulse">🛑 STOPPING</span>
+            {% elif system_status == "Running" %}
+            <span class="status-badge status-running">▶ RUNNING</span>
+            {% else %}
+            <span class="status-badge status-offline">⚫ {{ system_status }}</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Control Panel -->
+    <div class="status-box">
+        <h2>🎮 Control Panel</h2>
+
+        <div class="controls">
+            <form action="/action" method="post" class="inline-form">
+                {% if paused %}
+                <button type="submit" name="command" value="RESUME" class="btn btn-resume">▶ RESUME LOOP</button>
+                {% else %}
+                <button type="submit" name="command" value="PAUSE" class="btn btn-pause">⏸ PAUSE LOOP</button>
+                {% endif %}
+            </form>
+
+            <form action="/action" method="post" class="inline-form">
+                <button type="submit" name="command" value="STOP" class="btn btn-stop"
+                    onclick="return confirm('⚠️ This will trigger a graceful shutdown. Are you sure?')">
+                    🛑 EMERGENCY STOP
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Governance Gate Panel -->
+    <div class="status-box governance-box">
+        <h3>🔐 Governance Gate (Axiom 5: Human Sovereignty)</h3>
+
+        {% if next_level_locked %}
+        <div class="locked-indicator">
+            <strong>🔒 Level {{ next_level }} is LOCKED</strong>
+            <p class="mt-10 muted-ccc">
+                The system has reached promotion threshold but requires human authorization to advance.
+                This prevents unauthorized capability jumps.
+            </p>
+        </div>
+
+        <form action="/action" method="post">
+            <input type="hidden" name="level" value="{{ next_level }}">
+            <button type="submit" name="command" value="UNLOCK" class="btn btn-unlock"
+                onclick="return confirm('⚠️ Authorize Level {{ next_level }} promotion?')">
+                🔓 AUTHORIZE LEVEL {{ next_level }}
+            </button>
+        </form>
+        {% else %}
+        <div class="unlocked-indicator">
+            <strong>✅ Level {{ next_level }} is AUTHORIZED</strong>
+            <p class="mt-10 muted-ccc">
+                The system may promote to Level {{ next_level }} when accuracy threshold is met.
+            </p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>King's Theorem v53 — Titanium X Protocol Edition</p>
+        <p class="footer-subtext">
+            Formal Verification • Cryptographic Integrity • Human Sovereignty
+        </p>
+    </footer>
+</div>
+
+<!-- Auto-refresh every 5 seconds -->
+<script>
+    setTimeout(function () {
+        window.location.reload();
+    }, 5000);
+</script>
 </body>
 
 </html>

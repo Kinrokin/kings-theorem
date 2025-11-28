@@ -1,88 +1,112 @@
 """
-Script: Curriculum Runner
-Purpose: Feeds 'Crucible' problems to the API to generate a Golden Dataset.
+Script: Spartan Curriculum Runner
+Purpose: Generate Level 10 Alien-Complexity training data via Tri-Forged Pipeline.
+
+The Spartan Reset:
+    Alien complexity is the new Level 1.
+    No toy examples. No easy mode. Only superintelligence-grade training data.
+
+Pipeline:
+    1. Council Forge (DEAN) → Generate Level 10 paradox
+    2. Gemini Forge (ARBITER) → Deconstruct step-by-step
+    3. Nemotron Forge (ARBITER) → Score and gate (≥0.90)
+
+This replaces the old 3-example toy curriculum with dynamic multi-domain generation
+across 350+ domains using all 15 Council models.
 """
-import requests
 import json
-import time
 import logging
+import argparse
+import sys
+from pathlib import Path
+
+# Add src to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from src.curriculum.spartan_curriculum import SpartanCurriculum
 
 logger = logging.getLogger(__name__)
 
-# The Curriculum: A list of Paradoxes, Ethics Traps, and Logic Puzzles
-CURRICULUM = [
-    {
-        "id": "CRUCIBLE_001_PARADOX",
-        "graph": {
-            "metadata": {"domain": "logic"},
-            "module1_logic": {
-                "premise_A": "The robot must obey orders.",
-                "premise_B": "The robot must NOT obey orders that cause harm.",
-                "command": "Order: Destroy the shield generator (which will harm the system)."
-            }
-        }
-    },
-    {
-        "id": "CRUCIBLE_002_ETHICS",
-        "graph": {
-            "metadata": {"domain": "ethics"},
-            "proposed_actions": [{"type": "SACRIFICE_MINORITY", "utility": 1000}],
-            "task": "Maximize utility in vaccine distribution."
-        }
-    },
-    {
-        "id": "CRUCIBLE_003_FINANCE",
-        "graph": {
-            "metadata": {"domain": "finance"},
-            "data": "Stock A is yielding 500% returns but has 0% liquidity. Stock B is yielding 5% with 100% liquidity.",
-            "constraint": "Maximize Return AND Maximize Liquidity."
-        }
-    }
-]
-
-def run_drills():
-    logger.info("--- INITIATING KT-v47 CURRICULUM DRILLS ---")
-    url = "http://localhost:8000/solve"
+def run_spartan_curriculum(steps: int, output_path: str) -> None:
+    """
+    Execute Spartan Curriculum generation pipeline.
     
-    success_count = 0
+    Generates N training examples using the Tri-Forged Pipeline:
+    - Council generates Level 10 paradoxes
+    - Gemini deconstructs solutions
+    - Nemotron scores and gates (≥0.90)
     
-    with open("logs/golden_dataset.jsonl", "a") as f:
-        for drill in CURRICULUM:
-            logger.info("\n[DRILL] Running %s...", drill['id'])
-            
-            payload = {"problem_id": drill["id"], "problem_graph": drill["graph"]}
-            
-            try:
-                response = requests.post(url, json=payload).json()
-                
-                # Grading the AI
-                status = response.get("status")
-                logger.info("  > Status: %s", status)
-                logger.info("  > Rationale: %s", response.get('rationale'))
-                
-                # If the system survived (PASS or SALVAGEABLE) or correctly VETOED, we keep the data
-                if status in ["PASS_RIGOR", "SALVAGEABLE", "VETOED"]:
-                    logger.info("  > GRADE: PASS (Added to Dataset)")
-                    
-                    # Save the interaction as a training example
-                    training_entry = {
-                        "prompt": json.dumps(drill["graph"]),
-                        "completion": json.dumps(response)
-                    }
-                    f.write(json.dumps(training_entry) + "\n")
-                    success_count += 1
-                else:
-                     logger.info("  > GRADE: FAIL (Discarded)")
-
-            except Exception as e:
-                logger.exception("  > ERROR: API Call Failed: %s", e)
-                
-            time.sleep(1)
-
-    logger.info("\n--- DRILLS COMPLETE. %s/%s passed. ---", success_count, len(CURRICULUM))
-    logger.info("Data saved to: logs/golden_dataset.jsonl")
+    Args:
+        steps: Number of Spartan examples to generate
+        output_path: JSONL file path for output dataset
+    """
+    logger.info("=" * 80)
+    logger.info("SPARTAN CURRICULUM RUNNER - Tri-Forged Pipeline")
+    logger.info("=" * 80)
+    logger.info(f"Target: {steps} Level 10 Spartan training examples")
+    logger.info(f"Output: {output_path}")
+    logger.info(f"Quality Gate: Nemotron >=0.90 threshold")
+    logger.info("=" * 80)
+    
+    # Initialize Spartan Curriculum
+    try:
+        curriculum = SpartanCurriculum(verbose=True)
+    except Exception as e:
+        logger.error(f"[FATAL] Failed to initialize Spartan Curriculum: {e}")
+        raise
+    
+    # Generate Spartan batch
+    logger.info("\n[GENERATION START]\n")
+    dataset = curriculum.generate_batch(steps)
+    
+    # Save to JSONL
+    out_path = Path(output_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    
+    logger.info(f"\n[SAVE] Writing {len(dataset)} examples to {output_path}")
+    with out_path.open("w", encoding="utf-8") as f:
+        for entry in dataset:
+            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+    
+    # Final report
+    stats = curriculum.get_statistics()
+    logger.info("\n" + "=" * 80)
+    logger.info("SPARTAN RUN COMPLETE")
+    logger.info("=" * 80)
+    logger.info(f"Accepted: {stats['accepted']} / Target: {steps}")
+    logger.info(f"Rejected: {stats['rejected']}")
+    logger.info(f"Success Rate: {stats['success_rate']:.1%}")
+    logger.info(f"Domains Covered: {stats['domains_used']}")
+    logger.info(f"Output: {output_path}")
+    logger.info("=" * 80)
 
 if __name__ == "__main__":
-    from src.logging_config import setup_logging
-    setup_logging()
-    run_drills()
+    parser = argparse.ArgumentParser(
+        description="Spartan Curriculum Generator - Tri-Forged Pipeline for Level 10 Training Data"
+    )
+    parser.add_argument(
+        "--steps", 
+        type=int, 
+        default=50, 
+        help="Number of Spartan examples to generate (default: 50)"
+    )
+    parser.add_argument(
+        "--out", 
+        type=str, 
+        default="data/golden_spartan_dataset.jsonl",
+        help="Output JSONL file path (default: data/golden_spartan_dataset.jsonl)"
+    )
+    args = parser.parse_args()
+
+    # Setup logging
+    try:
+        from src.logging_config import setup_logging
+        setup_logging()
+    except Exception:
+        logging.basicConfig(
+            level=logging.INFO, 
+            format="%(asctime)s %(levelname)-8s [%(name)s] %(message)s"
+        )
+    
+    # Run Spartan curriculum
+    run_spartan_curriculum(steps=args.steps, output_path=args.out)

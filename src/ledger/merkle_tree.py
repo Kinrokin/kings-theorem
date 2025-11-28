@@ -35,7 +35,7 @@ class MerkleTree:
         if not self.levels: return '0'*64
         return self.levels[-1][0] # Access first and only element of the last level
 
-    def get_proof(self, index: int) -> list:
+    def get_proof(self, index: int) -> list[tuple[str, str]]:
         '''
         Returns list of tuples: (hash, direction)
         L = Sibling Left, R = Sibling Right
@@ -59,7 +59,7 @@ class MerkleTree:
         return proof
 
     @staticmethod
-    def verify(leaf_hash: str, proof: list, root: str) -> bool:
+    def verify(leaf_hash: str, proof: list[tuple[str, str]], root: str) -> bool:
         h = leaf_hash
         for sibling_hash, direction in proof:
             if direction == 'L':

@@ -1,0 +1,27 @@
+{
+  "level": 7,
+  "epoch": 0,
+  "best_metric": 0.0,
+  "safety_violations": 0,
+  "crash_counter": 0,
+  "last_update_ts": 1764307794.0,
+  "notes": "Genesis state - ready for ignition",
+  "training_metrics": [
+    {
+      "timestamp": 1764313269.3586926,
+      "model": "sshleifer/tiny-gpt2",
+      "epochs": 1,
+      "train_loss": 10.824147542317709,
+      "eval_loss": 10.821196556091309,
+      "output_dir": "models\\sft-tiny-demo"
+    },
+    {
+      "timestamp": 1764313902.1817808,
+      "model": "sshleifer/tiny-gpt2",
+      "epochs": 1,
+      "train_loss": 10.82448705037435,
+      "eval_loss": 10.821329116821289,
+      "output_dir": "models\\sft-tiny-demo"
+    }
+  ]
+}

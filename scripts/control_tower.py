@@ -6,10 +6,12 @@ This FastAPI service provides a web UI for human operators to:
 - PAUSE/RESUME the autonomous training loop
 - Trigger EMERGENCY STOP (graceful shutdown)
 - UNLOCK curriculum level promotions via governance gates
+- CHAT with the Council of Teachers (DEAN/ENGINEER/ARBITER/TA)
 
 Endpoints:
-- GET /       : Dashboard with system status and control buttons
-- POST /action: Execute control commands (PAUSE/RESUME/STOP/UNLOCK)
+- GET /         : Dashboard with system status and control buttons
+- POST /action  : Execute control commands (PAUSE/RESUME/STOP/UNLOCK)
+- POST /api/chat: Direct interface to Council Router
 
 Signal Files (shared via Docker volume):
 - data/PAUSE        : Freeze loop until removed
@@ -23,6 +25,7 @@ License: MIT
 import json
 import logging
 import os
+import sys
 from pathlib import Path
 from typing import Any, Dict
 
@@ -30,12 +33,34 @@ from fastapi import FastAPI, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from pydantic import BaseModel
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="King's Theorem Control Tower")
+
+# Add project root to path for imports
+SCRIPT_DIR_PATH = Path(__file__).parent.absolute()
+PROJECT_ROOT_PATH = SCRIPT_DIR_PATH.parent
+sys.path.insert(0, str(PROJECT_ROOT_PATH))
+
+# Lazy-load Council Router (initialized on first use)
+_council_router = None
+
+def get_council():
+    """Lazy initialization of Council Router."""
+    global _council_router
+    if _council_router is None:
+        try:
+            from src.runtime.council_router import CouncilRouter
+            _council_router = CouncilRouter()
+            logger.info("✅ Council Router initialized with 15-model roster")
+        except Exception as e:
+            logger.error(f"❌ Failed to initialize Council Router: {e}")
+            _council_router = None
+    return _council_router
 
 # Get script directory for relative paths
 SCRIPT_DIR = Path(__file__).parent.absolute()
@@ -175,6 +200,87 @@ async def health_check() -> Dict[str, str]:
     return {"status": "healthy", "service": "control_tower"}
 
 
+# --- CHAT API ---
+
+
+class ChatRequest(BaseModel):
+    """Chat request schema."""
+    query: str
+    mode: str = "architect"
+
+
+@app.post("/api/chat")
+async def api_chat(req: ChatRequest) -> Dict[str, Any]:
+    """
+    Direct interface to the Council of Teachers.
+    
+    Maps UI personas to Council specialist roles:
+    - architect -> DEAN (Deep reasoning for design)
+    - critic -> ARBITER (Rigorous evaluation)
+    - ops -> TA (Quick operational queries)
+    - crucible -> ENGINEER (Technical implementation)
+    """
+    council = get_council()
+    
+    if council is None:
+        return {
+            "answer": "❌ Council Router unavailable. Please check OPENROUTER_API_KEY is set.",
+            "error": True,
+            "governance": {
+                "paradoxes_detected": 0,
+                "safety_violations_prevented": 0
+            }
+        }
+    
+    try:
+        # Map UI modes to Council Roles
+        role_map = {
+            "architect": "DEAN",      # Design & reasoning
+            "critic": "ARBITER",      # Evaluation & grading
+            "ops": "TA",              # Quick operational tasks
+            "crucible": "ENGINEER"    # Technical implementation
+        }
+        council_role = role_map.get(req.mode, "TA")
+        
+        # System messages for each persona
+        system_messages = {
+            "architect": "You are the Architect persona for King's Theorem. You specialize in system design, reasoning architecture, and strategic planning. Provide clear, principled guidance.",
+            "critic": "You are the Critic persona for King's Theorem. You rigorously evaluate proposals for safety, correctness, and ethical implications. Be thorough and uncompromising.",
+            "ops": "You are the Ops persona for King's Theorem. You handle system operations, monitoring, and quick troubleshooting. Be concise and actionable.",
+            "crucible": "You are the Crucible persona for King's Theorem. You design and implement technical solutions, write code, and handle complex engineering challenges."
+        }
+        
+        system_msg = system_messages.get(req.mode, "You are a helpful AI assistant for the King's Theorem system.")
+        
+        # Execute Generation via Council
+        logger.info(f"🔀 Chat request routed to {council_role} ({req.mode} persona)")
+        answer = council.route_request(
+            role=council_role,
+            prompt=req.query,
+            system_msg=system_msg,
+            max_tokens=1500
+        )
+        
+        return {
+            "answer": answer,
+            "governance": {
+                "paradoxes_detected": 0,  # Placeholder for future governance integration
+                "safety_violations_prevented": 0
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"❌ Council chat error: {e}", exc_info=True)
+        return {
+            "answer": f"❌ Council Error: {str(e)}",
+            "error": True,
+            "governance": {
+                "paradoxes_detected": 0,
+                "safety_violations_prevented": 0
+            }
+        }
+
+
 # --- MAIN ENTRY POINT ---
 
 if __name__ == "__main__":
@@ -188,4 +294,4 @@ if __name__ == "__main__":
     logger.info(f"   Templates: {TEMPLATES_DIR}")
     logger.info("   Dashboard available at: http://localhost:8080")
 
-    uvicorn.run(app, host="0.0.0.0", port=8080, log_level="info")
+    uvicorn.run(app, host="127.0.0.1", port=8080, log_level="info", reload=False, workers=1)

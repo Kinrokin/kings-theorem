@@ -2,7 +2,7 @@
 import hashlib
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from src.metrics.anomaly import detect_adaptive_replay_anomaly
-from src.ledger.merkle_tree import MerkleTree, sha256
+from src.ledger.merkle_tree import MerkleTree
 
 def test_metrics():
     # Test 1: Adaptive Replay (Variance Collapse)

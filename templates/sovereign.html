@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>King's Theorem — Sovereign Interface</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='sovereign.css') }}">
+</head>
+
+<body>
+
+    <!-- SOVEREIGN COCKPIT -->
+    <div class="sovereign-container">
+
+        <!-- LEFT: THE OCULUS (Tribunal Eye) -->
+        <div class="oculus-panel">
+            <div class="oculus" id="oculus">
+                <div class="oculus-inner" id="oculus-inner">
+                    <div class="oculus-core"></div>
+                </div>
+            </div>
+
+            <!-- CVaR Risk Telemetry -->
+            <div class="telemetry-strip">
+                <div class="telemetry-label">RISK TOPOLOGY</div>
+                <div class="cvar-bar">
+                    <div class="cvar-fill" id="cvar-fill"></div>
+                </div>
+                <div class="telemetry-value" id="cvar-value">CVaR: 0.23</div>
+            </div>
+
+            <!-- Status Heartbeat -->
+            <div class="status-strip" id="status-strip" data-state="idle">
+                <div class="status-indicator"></div>
+                <div class="status-text" id="status-text">IDLE</div>
+            </div>
+
+            <!-- Decree Hash -->
+            <div class="hash-pill" id="hash-pill">
+                <span class="hash-label">DECREE</span>
+                <span class="hash-value" id="hash-value">—</span>
+            </div>
+
+            <!-- Mode Selector -->
+            <div class="mode-selector">
+                <div class="mode-label">COUNCIL MODE</div>
+                <div class="mode-chips">
+                    <div class="mode-chip active" data-mode="DEAN" onclick="selectMode('DEAN')">DEAN</div>
+                    <div class="mode-chip" data-mode="ENGINEER" onclick="selectMode('ENGINEER')">ENGINEER</div>
+                    <div class="mode-chip" data-mode="ARBITER" onclick="selectMode('ARBITER')">ARBITER</div>
+                    <div class="mode-chip" data-mode="TA" onclick="selectMode('TA')">TA</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CENTER: THE WARRANT & DECREE -->
+        <div class="main-panel">
+
+            <!-- Warrant Input (Constitutional Parchment) -->
+            <div class="warrant-container">
+                <div class="warrant-header">
+                    <span class="warrant-icon">📜</span>
+                    <span class="warrant-title">WARRANT</span>
+                    <span class="warrant-shortcut">Ctrl+Enter to Issue</span>
+                </div>
+                <textarea id="warrant-input" class="warrant-parchment" placeholder="Issue your warrant to the Council...
+
+Examples:
+• Generate a Level 10 paradox in game theory
+• Evaluate this proof for logical consistency
+• Deconstruct the halting problem
+• Explain quantum entanglement causality" rows="6"></textarea>
+                <button class="warrant-submit" id="warrant-submit" onclick="issueWarrant()">
+                    ⚖️ ISSUE WARRANT
+                </button>
+            </div>
+
+            <!-- Response Area (The Decree) -->
+            <div class="decree-container" id="decree-container">
+                <div class="decree-header">
+                    <span class="decree-icon">⚖️</span>
+                    <span class="decree-title">DECREE</span>
+                    <div class="decree-nav">
+                        <button class="decree-nav-btn" onclick="navigateDecree(-1)"
+                            title="Previous (Ctrl+Shift+[)">◀</button>
+                        <span class="decree-counter" id="decree-counter">—</span>
+                        <button class="decree-nav-btn" onclick="navigateDecree(1)"
+                            title="Next (Ctrl+Shift+])">▶</button>
+                    </div>
+                </div>
+                <div class="response-area" id="response-area">
+                    <div class="decree-empty">
+                        <div class="decree-empty-icon">👁️</div>
+                        <p>The Tribunal awaits your warrant.</p>
+                        <p class="decree-empty-hint">Press <kbd>Ctrl+K</kbd> to focus warrant input.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- RIGHT: THE LEDGER (Scar Tissue Archive) -->
+        <div class="ledger-panel">
+            <div class="ledger-header">
+                <span class="ledger-icon">📋</span>
+                <span class="ledger-title">LEDGER</span>
+                <span class="ledger-count" id="ledger-count">0 Entries</span>
+            </div>
+            <div class="ledger-scroll" id="ledger-scroll">
+                <div class="ledger-empty">Archive empty. Issue a warrant to begin.</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- VETO OVERLAY (Constitutional Strike) -->
+    <div class="veto-overlay" id="veto-overlay">
+        <div class="veto-content">
+            <div class="veto-icon">⚠️</div>
+            <div class="veto-title">CONSTITUTIONAL VETO</div>
+            <div class="veto-message" id="veto-message">Axiom violation detected.</div>
+        </div>
+    </div>
+
+    <!-- JavaScript: Sovereign State Machine -->
+    <script src="{{ url_for('static', path='sovereign.js') }}"></script>
+
+</body>
+
+</html>

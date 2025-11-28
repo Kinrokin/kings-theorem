@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  # Backend FastAPI server
+  backend:
+    build:
+      context: .
+      dockerfile: ./docker/api/Dockerfile
+    container_name: kt-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - ./data:/app/data
+    environment:
+      - PYTHONPATH=/app
+      - QWEN_BACKEND=http
+      - QWEN_HTTP_URL=http://host.docker.internal:8001/v1/chat/completions
+    networks:
+      - kt-network
+    restart: unless-stopped
+
+  # Frontend React/Vite dashboard
+  frontend:
+    build:
+      context: .
+      dockerfile: ./docker/frontend/Dockerfile
+    container_name: kt-frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./ui/frontend:/app
+      - /app/node_modules # Persist node_modules
+    depends_on:
+      - backend
+    networks:
+      - kt-network
+    restart: unless-stopped
+
+  # Worker loop for Ouroboros cycles
+  worker-loop:
+    build:
+      context: .
+      dockerfile: ./docker/worker-loop/Dockerfile
+    container_name: kt-worker-loop
+    volumes:
+      - .:/app
+      - ./data:/app/data
+    environment:
+      - PYTHONPATH=/app
+      - QWEN_BACKEND=http
+      - QWEN_HTTP_URL=http://host.docker.internal:8001/v1/chat/completions
+    depends_on:
+      - backend
+    networks:
+      - kt-network
+    restart: "no" # Manual start with ./kt mine
+
+networks:
+  kt-network:
+    driver: bridge
+
+# Usage:
+# - ./kt start    : Start backend + frontend
+# - ./kt mine     : Run one Ouroboros cycle
+# - ./kt stop     : Stop all containers
+# - ./kt status   : Check container status

@@ -1,0 +1,161 @@
+# Council of Teachers Configuration
+# AID: /config/council_config.yaml
+# Proof ID: PRF-COUNCIL-CFG-001
+
+# This file documents the 15-model specialist roster used by the Council Router.
+# Models are organized into 4 tiers based on their cognitive strengths.
+
+metadata:
+  version: "1.0.0"
+  last_updated: "2025-11-28"
+  provider: "OpenRouter"
+  api_base: "https://openrouter.ai/api/v1"
+  
+# Model Roster - Organized by Role
+roster:
+  
+  # Tier 1: DEAN - Deep Reasoning & Logic
+  # Use for: Level 7 paradoxes, complex logic, mathematical proofs
+  DEAN:
+    - id: "openai/o1-preview"
+      name: "OpenAI O1 Preview"
+      strengths: ["Chain-of-thought reasoning", "Step-by-step logic"]
+      cost_tier: "premium"
+      notes: "Current king of reasoning tasks"
+      
+    - id: "deepseek/deepseek-r1"
+      name: "DeepSeek R1"
+      strengths: ["Math", "Logic", "Open-source reasoning"]
+      cost_tier: "moderate"
+      notes: "Brilliant at mathematical reasoning"
+      
+    - id: "moonshot/kimi-k2-thinking"
+      name: "Kimi K2 Thinking"
+      strengths: ["Massive context", "Long-horizon planning"]
+      cost_tier: "moderate"
+      notes: "Great for complex multi-step reasoning"
+      
+    - id: "anthropic/claude-3.7-sonnet"
+      name: "Claude 3.7 Sonnet"
+      strengths: ["Balanced reasoning", "Nuanced thinking", "Human-like"]
+      cost_tier: "premium"
+      notes: "Most well-rounded smart model"
+  
+  # Tier 2: ENGINEER - Code & Technical Implementation
+  # Use for: Smart contracts, system architecture, algorithm design
+  ENGINEER:
+    - id: "anthropic/claude-3.5-sonnet"
+      name: "Claude 3.5 Sonnet"
+      strengths: ["Coding", "Technical writing", "Architecture"]
+      cost_tier: "premium"
+      notes: "Widely considered best coding model"
+      
+    - id: "mistralai/mistral-large"
+      name: "Mistral Large 2"
+      strengths: ["Functional logic", "Strict instructions", "European model"]
+      cost_tier: "moderate"
+      notes: "Exceptional at precise instruction following"
+      
+    - id: "meta-llama/llama-3.1-405b-instruct"
+      name: "Llama 3.1 405B"
+      strengths: ["Brute force knowledge", "Open-source power"]
+      cost_tier: "moderate"
+      notes: "The open-source leviathan"
+      
+    - id: "qwen/qwen-2.5-coder-32b-instruct"
+      name: "Qwen 2.5 Coder 32B"
+      strengths: ["Fast coding", "Code-specific tuning"]
+      cost_tier: "budget"
+      notes: "Punchy and fast for code tasks"
+  
+  # Tier 3: ARBITER - Grading & Safety
+  # Use for: Quality control, safety checks, output validation
+  ARBITER:
+    - id: "nvidia/llama-3.1-nemotron-70b-reward"
+      name: "Nemotron 70B Reward"
+      strengths: ["Trained to judge", "Reward modeling"]
+      cost_tier: "moderate"
+      notes: "Specifically trained to evaluate other models"
+      
+    - id: "openai/gpt-4o"
+      name: "GPT-4o"
+      strengths: ["Reliable standard", "Safety alignment"]
+      cost_tier: "premium"
+      notes: "Industry standard for safety checks"
+      
+    - id: "google/gemini-pro-1.5"
+      name: "Gemini 1.5 Pro"
+      strengths: ["2M token context", "Full history analysis"]
+      cost_tier: "moderate"
+      notes: "Can read entire conversation history before judging"
+  
+  # Tier 4: TA (Teaching Assistant) - Speed & Efficiency
+  # Use for: Formatting, quick checks, simple Level 1-3 tasks
+  TA:
+    - id: "meta-llama/llama-3.3-70b-instruct"
+      name: "Llama 3.3 70B"
+      strengths: ["Fast", "Cheap", "Smart for price"]
+      cost_tier: "budget"
+      notes: "Best bang for buck"
+      
+    - id: "deepseek/deepseek-chat"
+      name: "DeepSeek V3"
+      strengths: ["Extremely cheap", "Capable generalist"]
+      cost_tier: "budget"
+      notes: "Surprisingly capable for the cost"
+      
+    - id: "google/gemini-flash-1.5"
+      name: "Gemini Flash 1.5"
+      strengths: ["Speed demon", "High-volume generation"]
+      cost_tier: "budget"
+      notes: "Fastest response times"
+      
+    - id: "anthropic/claude-3-haiku"
+      name: "Claude 3 Haiku"
+      strengths: ["Pure speed", "Low latency"]
+      cost_tier: "budget"
+      notes: "Optimized for quick responses"
+
+# Temperature Settings by Role
+temperature_defaults:
+  DEAN: 0.8        # Higher for creative reasoning
+  ENGINEER: 0.7    # Balanced for code
+  ARBITER: 0.1     # Low for consistent judgment
+  TA: 0.7          # Standard
+
+# Cost Management
+cost_settings:
+  monthly_limit_usd: 50.0
+  warn_threshold_usd: 40.0
+  fallback_model: "meta-llama/llama-3.3-70b-instruct"
+  
+# Routing Strategy
+routing:
+  mode: "random"  # Options: random, round-robin, adaptive
+  retry_on_error: true
+  max_retries: 2
+  fallback_enabled: true
+
+# OpenRouter-Specific Features
+openrouter:
+  allow_fallbacks: true    # Auto-fallback if primary model down
+  require_parameters: false # Allow OpenRouter to optimize parameters
+  
+# Usage Patterns
+usage_recommendations:
+  paradox_generation: "DEAN"
+  code_challenges: "ENGINEER"
+  quality_grading: "ARBITER"
+  data_formatting: "TA"
+  ethics_evaluation: "DEAN"
+  security_audit: "ARBITER"
+  quick_formatting: "TA"
+  
+# Pro Tips
+notes: |
+  1. Set spending limits in OpenRouter dashboard to prevent runaway costs
+  2. DEAN tier (O1, Llama 405B) is expensive - reserve for Level 7+ tasks
+  3. Use TA tier for high-volume dataset generation
+  4. ARBITER tier should always validate DEAN outputs
+  5. Rotation prevents overfitting to single model's biases
+  6. Monitor logs for model-specific failure patterns

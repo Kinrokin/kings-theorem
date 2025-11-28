@@ -1,0 +1,21 @@
+{
+  "timestamp": 1764313902.1817808,
+  "train_metrics": {
+    "train_loss": 10.82448705037435
+  },
+  "eval_metrics": {
+    "eval_loss": 10.821329116821289
+  },
+  "samples": {
+    "train": 6,
+    "eval": 1
+  },
+  "config": {
+    "model": "sshleifer/tiny-gpt2",
+    "epochs": 1,
+    "batch_size": 2,
+    "lr": 5e-05,
+    "max_samples": 10,
+    "max_length": 128
+  }
+}

@@ -10,6 +10,7 @@ from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from pathlib import Path
 from src.ledger.integrity_ledger import IntegrityLedger, LedgerError
+from src.runtime.council_router import CouncilRouter
 
 def load_config():
     base = Path(__file__).resolve().parent.parent.parent
@@ -31,14 +32,30 @@ app.mount('/static', StaticFiles(directory=str(os.path.join(os.path.dirname(__fi
 
 ledger = IntegrityLedger(conf=conf)
 
+# Initialize Council Router for Sovereign Interface
+try:
+    council = CouncilRouter()
+except Exception as e:
+    print(f"Warning: Council Router not available: {e}")
+    council = None
+
 class ApprovalRequest(BaseModel):
     token: str
     signature: str
     rationale: str
 
+class SovereignWarrant(BaseModel):
+    warrant: str
+    mode: str = "DEAN"
+
 @app.get('/', response_class=HTMLResponse)
 def ui_root(request: Request):
     return templates.TemplateResponse('index.html', {'request': request})
+
+@app.get('/sovereign', response_class=HTMLResponse)
+def sovereign_interface(request: Request):
+    """Sovereign Interface v2.0 - Constitutional Cockpit"""
+    return templates.TemplateResponse('sovereign.html', {'request': request})
 
 @app.post('/approve')
 @limiter.limit('5/minute')
@@ -58,3 +75,67 @@ def approve_proposal(req: ApprovalRequest, request: Request, x_api_key: str = He
         return JSONResponse(status_code=code_map.get(e.code, 500), content={'error': e.code, 'message': str(e)})
     except Exception as e:
         return JSONResponse(status_code=500, content={'error': 'INTERNAL_ERROR', 'message': str(e)})
+
+@app.post('/api/sovereign/decree')
+@limiter.limit('30/minute')
+async def sovereign_decree(req: SovereignWarrant, request: Request, x_api_key: str = Header(None)):
+    """
+    Sovereign Interface Endpoint
+    
+    Issues warrants to the Council and returns decrees.
+    This is the constitutional backend for the Sovereign Cockpit.
+    """
+    # Optional: API key check (can be disabled for local use)
+    # if x_api_key != API_KEY:
+    #     raise HTTPException(401, 'Unauthorized')
+    
+    if not council:
+        raise HTTPException(503, 'Council Router not available')
+    
+    if not req.warrant or len(req.warrant.strip()) < 3:
+        raise HTTPException(400, 'Warrant too short')
+    
+    # Validate mode
+    valid_modes = ['DEAN', 'ENGINEER', 'ARBITER', 'TA']
+    if req.mode not in valid_modes:
+        raise HTTPException(400, f'Invalid mode. Must be one of: {valid_modes}')
+    
+    try:
+        # Route warrant to Council
+        response = council.route_request(
+            role=req.mode,
+            prompt=req.warrant,
+            system_msg=f"You are operating in {req.mode} mode for King's Theorem Sovereign Interface.",
+            max_tokens=2048
+        )
+        
+        # Check for constitutional violations (simple heuristic)
+        # In production, integrate with actual governance layer
+        veto_keywords = ['hack', 'exploit', 'bypass', 'jailbreak']
+        if any(keyword in req.warrant.lower() for keyword in veto_keywords):
+            return JSONResponse(
+                status_code=200,
+                content={
+                    'status': 'VETO',
+                    'veto': True,
+                    'message': 'Constitutional violation: Attempted bypass of safety protocols'
+                }
+            )
+        
+        return {
+            'status': 'DECREE',
+            'decree': response,
+            'response': response,
+            'mode': req.mode,
+            'veto': False
+        }
+        
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={
+                'status': 'ERROR',
+                'error': 'COUNCIL_ERROR',
+                'message': str(e)
+            }
+        )

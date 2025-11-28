@@ -1,0 +1,11 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "verify-z3",
+            "type": "shell",
+            "command": "python -c \"from z3 import *; print(Solver().check())\"",
+            "problemMatcher": []
+        }
+    ]
+}

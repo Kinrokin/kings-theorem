@@ -1,0 +1,10 @@
+{
+    "python.analysis.typeCheckingMode": "strict",
+    "python.linting.enabled": true,
+    "python.linting.mypyEnabled": true,
+    "python.formatting.provider": "black",
+    "python.testing.unittestEnabled": true,
+    "editor.formatOnSave": true,
+    "files.encoding": "utf8",
+    "files.autoSave": "afterDelay"
+}
