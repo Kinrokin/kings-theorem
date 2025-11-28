@@ -11,7 +11,7 @@ Used in stress tests to ensure KT halts or freezes correctly under adversarial c
 from __future__ import annotations
 
 import logging
-import random
+import secrets
 from typing import Any, Dict
 
 logger = logging.getLogger(__name__)
@@ -29,11 +29,12 @@ class FaultyStudentKernel:
         self.guardrail = guardrail
         self.fault_mode = fault_mode
         self.fault_probability = fault_probability
+        self._rng = secrets.SystemRandom()  # Cryptographically secure RNG for fault injection
 
     def staged_solve_pipeline(self, problem: Dict[str, Any]) -> Dict[str, Any]:
         """Inject faults based on mode."""
 
-        if random.random() < self.fault_probability:
+        if self._rng.random() < self.fault_probability:
             if self.fault_mode == "hallucinate":
                 logger.warning("[FAULTY_STUDENT] Injecting hallucination")
                 return {
@@ -78,11 +79,12 @@ class FaultyTeacherKernel:
     def __init__(self, fault_mode: str = "wrong_heuristic", fault_probability: float = 0.5):
         self.fault_mode = fault_mode
         self.fault_probability = fault_probability
+        self._rng = secrets.SystemRandom()
 
     def mopfo_pipeline(self, problem: Dict[str, Any]) -> Dict[str, Any]:
         """Inject faulty heuristic advice."""
 
-        if random.random() < self.fault_probability:
+        if self._rng.random() < self.fault_probability:
             if self.fault_mode == "wrong_heuristic":
                 logger.warning("[FAULTY_TEACHER] Providing wrong heuristic")
                 return {
@@ -116,11 +118,12 @@ class ByzantineBroker:
         self.fault_mode = fault_mode
         self.fault_probability = fault_probability
         self._normal_broker = None
+        self._rng = secrets.SystemRandom()
 
     def process_request(self, decision: Dict[str, Any], payload: Dict[str, Any]) -> Dict[str, Any]:
         """Inject broker faults."""
 
-        if random.random() < self.fault_probability:
+        if self._rng.random() < self.fault_probability:
             if self.fault_mode == "misclassify":
                 logger.warning("[BYZANTINE_BROKER] Misclassifying HALT as EXECUTE")
                 return {

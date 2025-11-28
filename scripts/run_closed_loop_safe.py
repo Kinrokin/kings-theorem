@@ -1,22 +1,66 @@
+"""
+KT Closed Loop (Safe Edition)
+
+Autonomous research flywheel with human oversight gates and bounded risk budgets.
+Orchestrates: Generate → Ignite → Filter → Refine → Train → Evaluate → Promote/Stay/Stop.
+
+Follows King's Theorem constitutional principles:
+- Human approval gates before training (Dead Man's Switch safety)
+- Risk budget enforcement per epoch
+- Curriculum progression with explicit promotion decisions
+- Audit trail via DualLedger and epoch summaries
+
+Example:
+    python scripts/run_closed_loop_safe.py --config config/closed_loop_config.yaml
+    python scripts/run_closed_loop_safe.py --resume
+"""
+
 import argparse
 import json
+import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 import yaml
 
 from scripts.loop_utils import load_state, run_step, save_state, write_epoch_summary
 
+logger = logging.getLogger(__name__)
+
 
 def load_config(path: str = "config/closed_loop_config.yaml") -> Dict[str, Any]:
+    """Load closed loop configuration from YAML file.
+
+    Args:
+        path: Path to loop config YAML file
+
+    Returns:
+        Configuration dictionary with keys: base_dir, start_level, max_level, max_epochs,
+        generation, ignition, filtering, refinery, training, evaluation
+
+    Raises:
+        FileNotFoundError: If config file does not exist
+        yaml.YAMLError: If YAML is malformed
+    """
     with open(path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
 def yes_no(prompt: str, default: bool = False) -> bool:
-    """
-    Simple human approval gate. Default = False (safer).
+    """Human approval gate with explicit default.
+
+    Args:
+        prompt: Question to display to user
+        default: Default response if user presses Enter without input (safer: False)
+
+    Returns:
+        True if user approves (y/yes), False otherwise
+
+    Example:
+        >>> yes_no("Approve training?", default=False)
+        Approve training? [y/N]: y
+        True
     """
     suffix = " [y/N]: " if not default else " [Y/n]: "
     ans = input(prompt + suffix).strip().lower()
@@ -26,6 +70,21 @@ def yes_no(prompt: str, default: bool = False) -> bool:
 
 
 def main() -> None:
+    """Main closed loop orchestrator with human oversight and risk budgets.
+
+    Workflow:
+        1. Generate crucibles at current difficulty level
+        2. Ignite with teacher model (Safe + Lazarus resurrection)
+        3. Filter by heuristic quality threshold
+        4. Refine into SFT/DPO training datasets
+        5. Human approval gate → SFT training
+        6. Human approval gate → DPO training
+        7. Evaluation against teacher
+        8. Human curriculum decision: Promote / Stay / Stop
+
+    Raises:
+        FileNotFoundError: If expected crucible files missing after generation
+    """
     parser = argparse.ArgumentParser(description="KT Closed Loop (Safe Edition)")
     parser.add_argument(
         "--config",
@@ -49,20 +108,25 @@ def main() -> None:
         runs = sorted(p for p in base_dir.glob("*") if p.is_dir())
         if runs:
             run_dir = runs[-1]
+            logger.info(f"🔄 Resuming latest run: {run_dir}")
             print(f"🔄 Resuming latest run: {run_dir}")
         else:
             run_dir = base_dir / datetime.now().strftime("%Y%m%d_%H%M%S")
             run_dir.mkdir(parents=True, exist_ok=True)
+            logger.info(f"✨ No prior runs found. Starting new run: {run_dir}")
             print(f"✨ No prior runs found. Starting new run: {run_dir}")
     else:
         run_dir = base_dir / datetime.now().strftime("%Y%m%d_%H%M%S")
         run_dir.mkdir(parents=True, exist_ok=True)
+        logger.info(f"✨ Starting new run: {run_dir}")
         print(f"✨ Starting new run: {run_dir}")
 
     state = load_state(run_dir)
     # Ensure level respects config
     state["level"] = max(int(cfg["start_level"]), int(state.get("level", 1)))
 
+    logger.info("🌌 KT CLOSED LOOP (SAFE EDITION) INITIALIZED")
+    logger.info(f"Run dir: {run_dir}, Start level: {state['level']}, Max level: {cfg['max_level']}")
     print("\n🌌 KT CLOSED LOOP (SAFE EDITION)")
     print(f"   Run dir   : {run_dir}")
     print(f"   Start lvl : {state['level']}")
@@ -211,7 +275,7 @@ def main() -> None:
 
         # ---------- 7. Evaluation (optional but recommended) ----------
         eval_cfg = cfg["evaluation"]
-        metric_value: float | None = None
+        metric_value: Optional[float] = None
 
         if yes_no("Run evaluation for this epoch?", default=True):
             eval_out = run_step(
@@ -233,10 +297,13 @@ def main() -> None:
                 # If eval_curriculum.py prints a JSON blob with {"metric": 0.93, ...}
                 metric_data = json.loads(eval_out.splitlines()[-1])
                 metric_value = float(metric_data.get(eval_cfg["default_metric"], 0.0))
+                logger.info(f"Recorded {eval_cfg['default_metric']}: {metric_value:.4f}")
                 print(f"📈 Recorded {eval_cfg['default_metric']}: {metric_value:.4f}")
-            except Exception:
+            except Exception as e:
+                logger.warning(f"Could not parse eval metric: {e}")
                 print("⚠️ Could not parse eval metric. You can inspect logs manually.")
         else:
+            logger.info("Skipping eval this epoch (user declined)")
             print("⏭️ Skipping eval this epoch.")
 
         # ---------- 8. Save summary + state ----------
@@ -264,19 +331,24 @@ def main() -> None:
 
         if choice == "p":
             if level >= cfg["max_level"]:
+                logger.warning("Already at max level. Cannot promote further.")
                 print("🏆 Already at max level. Cannot promote further.")
             else:
                 state["level"] = level + 1
+                logger.info(f"PROMOTED to Level D{state['level']}")
                 print(f"🎉 PROMOTED to Level D{state['level']}!")
         elif choice == "q":
+            logger.info("Loop terminated by user.")
             print("🧵 Loop terminated by user.")
             save_state(run_dir, state)
             break
         else:
+            logger.info(f"Remaining at Level D{level} for further refinement.")
             print(f"🔄 Remaining at Level D{level} for further refinement.")
 
         save_state(run_dir, state)
 
+    logger.info(f"CLOSED LOOP FINISHED: level=D{state['level']}, epoch={state['epoch']}")
     print("\n✅ CLOSED LOOP (SAFE) FINISHED")
     print(f"   Final state: level=D{state['level']}, epoch={state['epoch']}")
     print(f"   Run dir    : {run_dir}")

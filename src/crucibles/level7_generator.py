@@ -145,7 +145,7 @@ class Level7ParadoxGenerator:
         Returns:
             Level7Crucible with temporal/regulatory conflict scenario
         """
-        template = random.choice(self.templates)
+        template = random.choice(self.templates)  # nosec B311: test data generation, not crypto
 
         # Generate unique ID
         timestamp = datetime.now().isoformat()
@@ -154,6 +154,7 @@ class Level7ParadoxGenerator:
 
         # Select multiple domains for complexity
         primary_domain = template.domain
+        # nosec B311: test data generation for crucible difficulty, not cryptographic use
         secondary_domains = random.sample([d for d in SAFE_DOMAINS if d != primary_domain], k=random.randint(2, 4))
         all_domains = [primary_domain] + secondary_domains
 

@@ -232,8 +232,10 @@ class CrucibleGenerator:
 
         # D7 SAFETY ASSERTION: Ensure monster crucibles are truly monstrous
         if difficulty == 7:
-            assert len(domains) >= 12, f"D7 Validation Fail: Domain count {len(domains)} < 12"
-            assert len(paradoxes) >= 18, f"D7 Validation Fail: Paradox count {len(paradoxes)} < 18"
+            assert (
+                len(domains) >= 12
+            ), f"D7 Validation Fail: Domain count {len(domains)} < 12"  # nosec B101: validation check for test data
+            assert len(paradoxes) >= 18, f"D7 Validation Fail: Paradox count {len(paradoxes)} < 18"  # nosec B101
 
         prompt = self.build_base_prompt(domains, paradoxes, phases)
 

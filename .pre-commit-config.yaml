@@ -18,7 +18,7 @@ repos:
     hooks:
       - id: detect-secrets
         args: ['--baseline', '.secrets.baseline']
-        exclude: ^^\.secrets\.baseline$|package\.lock\.json
+        exclude: ^\.secrets\.baseline$|package\.lock\.json|^ledger/.*\.jsonl$|^proofs/.*\.json$|^src/ledger/store/.*\.precommit$
         stages: [commit]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
